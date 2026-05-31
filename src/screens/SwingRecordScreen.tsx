@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -39,6 +40,24 @@ export function SwingRecordScreen({ navigation, selectedCharacterId }: Props) {
 
   const goLoading = (videoUri?: string) => navigation.getParent()?.navigate('AnalysisLoading', { videoUri, club, cameraAngle });
 
+  const pickVideo = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert('動画を選択できません', 'スマホ内の動画を選ぶには写真ライブラリへのアクセス許可が必要です。');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['videos'],
+      allowsEditing: false,
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets[0]?.uri) {
+      goLoading(result.assets[0].uri);
+    }
+  };
+
   const startRecording = async () => {
     if (!cameraRef.current) {
       goLoading(DUMMY_VIDEO_URI);
@@ -77,6 +96,7 @@ export function SwingRecordScreen({ navigation, selectedCharacterId }: Props) {
       <Text style={styles.label}>使用クラブ</Text>
       <View style={styles.options}>{clubs.map((item) => <Chip key={item} label={item} active={club === item} onPress={() => setClub(item)} />)}</View>
       <PastelButton label={recording ? '録画停止' : '録画開始'} onPress={recording ? stopRecording : startRecording} />
+      <PastelButton label="動画を選択" onPress={pickVideo} variant="ghost" />
       <PastelButton label="ダミー動画で分析へ進む" onPress={() => goLoading(DUMMY_VIDEO_URI)} variant="secondary" />
     </ScrollView>
   );

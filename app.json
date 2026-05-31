@@ -12,11 +12,15 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSCameraUsageDescription": "スイング動画を撮影するためにカメラを使用します。",
-        "NSMicrophoneUsageDescription": "スイング動画の録音にマイクを使用します。"
+        "NSMicrophoneUsageDescription": "スイング動画の録音にマイクを使用します。",
+        "NSPhotoLibraryUsageDescription": "スイング動画を選択するために写真ライブラリを使用します。"
       }
     },
     "android": {
-      "permissions": ["CAMERA", "RECORD_AUDIO"]
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO"
+      ]
     },
     "plugins": [
       [
@@ -25,6 +29,12 @@
           "cameraPermission": "スイング動画を撮影するためにカメラを使用します。",
           "microphonePermission": "スイング動画の録音にマイクを使用します。",
           "recordAudioAndroid": true
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "スイング動画を選択するために写真ライブラリを使用します。"
         }
       ]
     ]
