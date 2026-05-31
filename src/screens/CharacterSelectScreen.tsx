@@ -63,10 +63,6 @@ export function CharacterSelectScreen({ navigation, selectedCharacterId, onSelec
   return (
     <View style={styles.container}>
       <View style={styles.sky} />
-      <View style={styles.clubHouse}>
-        <Text style={styles.clubHouseText}>Swing Mate Club</Text>
-        <View style={styles.windowRow}><View style={styles.window} /><View style={styles.window} /><View style={styles.window} /></View>
-      </View>
       <View style={styles.green} />
       <View style={styles.fairway} />
       <Text style={styles.flag}>⛳️</Text>
@@ -127,10 +123,6 @@ export function CharacterSelectScreen({ navigation, selectedCharacterId, onSelec
 const styles = StyleSheet.create({
   container: { backgroundColor: colors.background, flex: 1, overflow: 'hidden', paddingBottom: spacing.lg, paddingTop: spacing.xxl },
   sky: { backgroundColor: '#DFF4FF', height: '45%', left: 0, position: 'absolute', right: 0, top: 0 },
-  clubHouse: { alignItems: 'center', alignSelf: 'center', backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg, borderWidth: 1, paddingHorizontal: spacing.lg, paddingVertical: spacing.md, position: 'absolute', top: 106 },
-  clubHouseText: { color: colors.muted, fontSize: 12, fontWeight: '900' },
-  windowRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
-  window: { backgroundColor: colors.lavenderLight, borderColor: colors.border, borderRadius: radius.sm, borderWidth: 1, height: 18, width: 28 },
   green: { backgroundColor: '#BDEACD', borderTopLeftRadius: 320, borderTopRightRadius: 320, bottom: -130, height: '48%', left: -80, position: 'absolute', right: -80 },
   fairway: { alignSelf: 'center', backgroundColor: '#E6F8D8', borderTopLeftRadius: 140, borderTopRightRadius: 140, bottom: -50, height: '36%', position: 'absolute', width: 190 },
   flag: { fontSize: 34, position: 'absolute', right: spacing.xl, top: 174 },

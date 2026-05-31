@@ -85,11 +85,12 @@ export function HomeScreen({ navigation, selectedCharacterId }: Props) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.homeTitle}>ホーム</Text>
       <View style={styles.scene}>
         <View style={styles.sky} />
         <View style={styles.clubHouse}>
-          <Text style={styles.clubHouseText}>Swing Mate Club House</Text>
           <View style={styles.windowRow}>
+            <View style={styles.window} />
             <View style={styles.window} />
             <View style={styles.window} />
             <View style={styles.window} />
@@ -131,28 +132,28 @@ export function HomeScreen({ navigation, selectedCharacterId }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { backgroundColor: colors.background, flexGrow: 1, padding: spacing.lg, gap: spacing.md },
-  scene: { backgroundColor: colors.mintLight, borderColor: colors.border, borderRadius: radius.lg, borderWidth: 1, height: 560, overflow: 'hidden' },
-  sky: { backgroundColor: '#DFF4FF', height: 250, left: 0, position: 'absolute', right: 0, top: 0 },
-  clubHouse: { alignItems: 'center', alignSelf: 'center', backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.md, borderWidth: 1, paddingHorizontal: spacing.lg, paddingVertical: spacing.md, position: 'absolute', top: 68 },
-  clubHouseText: { color: colors.muted, fontSize: 12, fontWeight: '900' },
-  windowRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
-  window: { backgroundColor: colors.lavenderLight, borderColor: colors.border, borderRadius: radius.sm, borderWidth: 1, height: 18, width: 28 },
-  green: { backgroundColor: '#BDEACD', borderTopLeftRadius: 260, borderTopRightRadius: 260, bottom: -120, height: 360, left: -80, position: 'absolute', right: -80 },
-  fairway: { alignSelf: 'center', backgroundColor: '#E6F8D8', borderTopLeftRadius: 120, borderTopRightRadius: 120, bottom: -40, height: 260, position: 'absolute', width: 170 },
-  flag: { fontSize: 34, position: 'absolute', right: 28, top: 260 },
+  container: { backgroundColor: colors.background, flexGrow: 1, gap: spacing.md },
+  homeTitle: { color: colors.text, fontSize: 24, fontWeight: '900', paddingHorizontal: spacing.lg, paddingTop: spacing.lg, textAlign: 'center' },
+  scene: { backgroundColor: colors.mintLight, height: 620, overflow: 'hidden' },
+  sky: { backgroundColor: '#DFF4FF', height: 300, left: 0, position: 'absolute', right: 0, top: 0 },
+  clubHouse: { alignItems: 'center', alignSelf: 'center', backgroundColor: 'rgba(255,255,255,0.45)', borderColor: 'rgba(255,255,255,0.75)', borderRadius: radius.lg, borderWidth: 1, height: 130, justifyContent: 'center', paddingHorizontal: spacing.lg, position: 'absolute', top: 74, width: '72%' },
+  windowRow: { flexDirection: 'row', gap: spacing.sm },
+  window: { backgroundColor: 'rgba(239,234,253,0.82)', borderColor: colors.surface, borderRadius: radius.sm, borderWidth: 1, height: 42, width: 38 },
+  green: { backgroundColor: '#BDEACD', borderTopLeftRadius: 300, borderTopRightRadius: 300, bottom: -120, height: 390, left: -80, position: 'absolute', right: -80 },
+  fairway: { alignSelf: 'center', backgroundColor: '#E6F8D8', borderTopLeftRadius: 150, borderTopRightRadius: 150, bottom: -52, height: 300, position: 'absolute', width: 210 },
+  flag: { fontSize: 34, position: 'absolute', right: 28, top: 300 },
   sun: { borderRadius: 40, height: 80, left: 28, opacity: 0.8, position: 'absolute', top: 30, width: 80 },
-  speechBubble: { borderRadius: radius.lg, borderWidth: 2, left: spacing.md, padding: spacing.md, position: 'absolute', right: spacing.md, top: 138, zIndex: 4 },
+  speechBubble: { borderRadius: radius.lg, borderWidth: 2, left: spacing.lg, padding: spacing.md, position: 'absolute', right: spacing.lg, top: 18, zIndex: 4 },
   speechName: { fontSize: 15, fontWeight: '900', marginBottom: spacing.xs },
   speechText: { color: colors.text, fontSize: 15, fontWeight: '800', lineHeight: 22 },
-  characterPressable: { alignItems: 'center', bottom: -18, left: 0, position: 'absolute', right: 0, zIndex: 3 },
+  characterPressable: { alignItems: 'center', bottom: -8, left: 0, position: 'absolute', right: 0, zIndex: 3 },
   standee: { alignItems: 'center', width: '100%' },
-  standeeBody: { alignItems: 'center', height: 500, justifyContent: 'flex-end', shadowColor: colors.shadow, shadowOpacity: 0.35, shadowRadius: 16, width: '100%' },
+  standeeBody: { alignItems: 'center', height: 540, justifyContent: 'flex-end', shadowColor: colors.shadow, shadowOpacity: 0.35, shadowRadius: 16, width: '100%' },
   placeholderStandee: { alignItems: 'center', borderRadius: 120, borderWidth: 4, height: 300, justifyContent: 'center', marginBottom: spacing.xl, width: 240 },
   standeeEmoji: { fontSize: 96, marginBottom: spacing.sm },
   standeeName: { fontSize: 30, fontWeight: '900' },
   standeeRole: { color: colors.text, fontSize: 13, fontWeight: '900', marginTop: spacing.xs },
-  characterImage: { bottom: 0, height: 500, position: 'absolute', width: '96%' },
-  actionCard: { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg, borderWidth: 1, gap: spacing.md, padding: spacing.lg },
+  characterImage: { bottom: 0, height: 540, position: 'absolute', width: '100%' },
+  actionCard: { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg, borderWidth: 1, gap: spacing.md, marginHorizontal: spacing.lg, padding: spacing.lg },
   actionTitle: { color: colors.text, fontSize: 18, fontWeight: '900', textAlign: 'center' },
 });
