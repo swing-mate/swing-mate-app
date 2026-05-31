@@ -12,16 +12,22 @@ import { radius, spacing } from '../theme/spacing';
 import { CharacterId } from '../types/character';
 import { RootStackParamList, TabParamList } from '../types/navigation';
 
+declare const require: (path: string) => ImageSourcePropType;
+
 type Props = CompositeScreenProps<BottomTabScreenProps<TabParamList, 'Home'>, NativeStackScreenProps<RootStackParamList>> & { selectedCharacterId: CharacterId | null };
 
-const characterImageSources: Partial<Record<CharacterId, ImageSourcePropType>> = {};
-// 後から画像を追加する場合は sakura.png / minami.png / himari.png を配置し、ここに require を追加します。
+const characterImageSources: Record<CharacterId, ImageSourcePropType> = {
+  mimi: require('../../assets/characters/mimi.png'),
+  rina: require('../../assets/characters/rina.png'),
+  yuna: require('../../assets/characters/yuna.png'),
+};
 
 export function HomeScreen({ navigation, selectedCharacterId }: Props) {
   const character = getCharacterById(selectedCharacterId);
   const floatY = useSharedValue(0);
   const bounceScale = useSharedValue(1);
   const [messageIndex, setMessageIndex] = useState(0);
+  const [imageLoadFailed, setImageLoadFailed] = useState(false);
   const messages = [character.homeComment, character.comment, character.tone, character.compareComment];
   const characterImageSource = characterImageSources[character.id];
 
@@ -44,6 +50,7 @@ export function HomeScreen({ navigation, selectedCharacterId }: Props) {
 
   useEffect(() => {
     setMessageIndex(0);
+    setImageLoadFailed(false);
   }, [selectedCharacterId]);
 
   const handleCharacterPress = () => {
@@ -104,7 +111,7 @@ export function HomeScreen({ navigation, selectedCharacterId }: Props) {
               <Text style={styles.standeeEmoji}>{character.emoji}</Text>
               <Text style={[styles.standeeName, { color: character.color }]}>{character.name}</Text>
               <Text style={styles.standeeRole}>{character.role}</Text>
-              {characterImageSource ? <Image source={characterImageSource} style={styles.characterImage} resizeMode="contain" /> : null}
+              {!imageLoadFailed ? <Image source={characterImageSource} style={styles.characterImage} resizeMode="contain" onError={() => setImageLoadFailed(true)} /> : null}
             </View>
           </Animated.View>
         </Pressable>

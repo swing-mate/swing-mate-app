@@ -9,17 +9,23 @@ import { radius, spacing } from '../theme/spacing';
 import { Character, CharacterId } from '../types/character';
 import { RootStackParamList } from '../types/navigation';
 
+declare const require: (path: string) => ImageSourcePropType;
+
 type Props = NativeStackScreenProps<RootStackParamList, 'CharacterSelect'> & {
   selectedCharacterId: CharacterId | null;
   onSelectCharacter: (id: CharacterId) => Promise<void>;
 };
 
-const characterImageSources: Partial<Record<CharacterId, ImageSourcePropType>> = {};
-// 後から画像を追加する場合は assets/characters/mimi.png / rina.png / yuna.png を配置し、ここに require を追加します。
+const characterImageSources: Record<CharacterId, ImageSourcePropType> = {
+  mimi: require('../../assets/characters/mimi.png'),
+  rina: require('../../assets/characters/rina.png'),
+  yuna: require('../../assets/characters/yuna.png'),
+};
 
 export function CharacterSelectScreen({ navigation, selectedCharacterId, onSelectCharacter }: Props) {
   const initialIndex = Math.max(0, characters.findIndex((character) => character.id === selectedCharacterId));
   const [selectedIndex, setSelectedIndex] = useState(initialIndex);
+  const [failedImageIds, setFailedImageIds] = useState<Partial<Record<CharacterId, boolean>>>({});
   const { width } = useWindowDimensions();
   const listRef = useRef<FlatList<Character>>(null);
   const bounceScale = useSharedValue(1);
@@ -91,7 +97,7 @@ export function CharacterSelectScreen({ navigation, selectedCharacterId, onSelec
                 <View style={styles.checkBadge}>{isSelected ? <Text style={[styles.checkText, { color: item.color }]}>✓</Text> : <Text style={styles.emptyCheck}>○</Text>}</View>
                 <View style={[styles.standeeArea, { borderColor: item.color }]}>
                   <Text style={styles.standeeEmoji}>{item.emoji}</Text>
-                  {imageSource ? <Image source={imageSource} style={styles.characterImage} resizeMode="contain" /> : null}
+                  {!failedImageIds[item.id] ? <Image source={imageSource} style={styles.characterImage} resizeMode="contain" onError={() => setFailedImageIds((current) => ({ ...current, [item.id]: true }))} /> : null}
                 </View>
                 <Text style={[styles.name, { color: item.color }]}>{item.name}</Text>
                 <Text style={styles.romanName}>{item.romanName}</Text>
