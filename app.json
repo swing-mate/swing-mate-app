@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "スイングメイト",
+    "slug": "swing-mate-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#FFF8FB"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "スイング動画を撮影するためにカメラを使用します。",
+        "NSMicrophoneUsageDescription": "スイング動画の録音にマイクを使用します。"
+      }
+    },
+    "android": {
+      "permissions": ["CAMERA", "RECORD_AUDIO"]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "スイング動画を撮影するためにカメラを使用します。",
+          "microphonePermission": "スイング動画の録音にマイクを使用します。",
+          "recordAudioAndroid": true
+        }
+      ]
+    ]
+  }
+}
