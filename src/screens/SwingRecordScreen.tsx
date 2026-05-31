@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   cameraWrap: { backgroundColor: '#B9DCD6', borderRadius: radius.lg, height: 430, overflow: 'hidden' },
   cameraFallback: { alignItems: 'center', flex: 1, justifyContent: 'center' },
   fallbackText: { color: colors.text, fontWeight: '800' },
-  grid: { ...StyleSheet.absoluteFillObject },
+  grid: { bottom: 0, left: 0, position: 'absolute', right: 0, top: 0 },
   vLine: { backgroundColor: 'rgba(255,255,255,0.5)', height: '100%', position: 'absolute', width: 1 },
   hLine: { backgroundColor: 'rgba(255,255,255,0.5)', height: 1, position: 'absolute', width: '100%' },
   timer: { alignSelf: 'center', backgroundColor: 'rgba(0,0,0,0.35)', borderRadius: radius.pill, color: colors.surface, fontSize: 16, fontWeight: '900', marginTop: spacing.md, overflow: 'hidden', paddingHorizontal: spacing.md, paddingVertical: spacing.sm },

@@ -150,7 +150,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   videoFallback: {
-    ...StyleSheet.absoluteFillObject,
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
     alignItems: 'center',
     backgroundColor: 'rgba(123,216,190,0.25)',
     justifyContent: 'center',
