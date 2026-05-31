@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CaddieMessage } from '../components/CaddieMessage';
 import { PastelButton } from '../components/PastelButton';
 import { ScoreBar } from '../components/ScoreBar';
@@ -18,6 +19,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'AnalysisResult'> & { se
 
 export function AnalysisResultScreen({ navigation, route, selectedCharacterId }: Props) {
   const character = getCharacterById(selectedCharacterId);
+  const insets = useSafeAreaInsets();
   const [savedId, setSavedId] = useState<string | null>(null);
   const saveHistory = async () => {
     const swing = analysisService.createSwingHistory({ videoUri: route.params.videoUri, club: route.params.club, cameraAngle: route.params.cameraAngle, selectedCharacterId: character.id });
@@ -33,7 +35,7 @@ export function AnalysisResultScreen({ navigation, route, selectedCharacterId }:
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={[styles.container, { paddingTop: insets.top + spacing.md }]}>
       <ScoreCard score={dummyAnalysis.totalScore} rank={dummyAnalysis.rank} title="総合スコア" />
       <View style={styles.card}><Text style={styles.cardTitle}>スイング評価</Text>{analysisItems.map((item) => <ScoreBar key={item.key} label={item.label} score={dummyAnalysis[item.key]} comment={item.comment} color={character.color} />)}</View>
       <CaddieMessage character={character} message={character.resultAdvice} />

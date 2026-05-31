@@ -5,6 +5,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PastelButton } from './src/components/PastelButton';
 import { ScoreCard } from './src/components/ScoreCard';
 import { authService } from './src/services/authService';
@@ -67,8 +68,9 @@ export default function App() {
   const initialRouteName: keyof RootStackParamList = !isLoggedIn ? 'Login' : selectedCharacterId ? 'MainTabs' : 'CharacterSelect';
 
   return (
-    <NavigationContainer>
-      <StatusBar style="dark" />
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <StatusBar style="dark" />
       <Stack.Navigator initialRouteName={initialRouteName} screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login">{(props) => <LoginScreen {...props} onLogin={handleLogin} />}</Stack.Screen>
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
@@ -78,7 +80,8 @@ export default function App() {
         <Stack.Screen name="AnalysisResult">{(props) => <AnalysisResultScreen {...props} selectedCharacterId={selectedCharacterId} />}</Stack.Screen>
         <Stack.Screen name="BestCompare">{(props) => <BestSwingCompareScreen {...props} selectedCharacterId={selectedCharacterId} />}</Stack.Screen>
       </Stack.Navigator>
-    </NavigationContainer>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
 
@@ -103,8 +106,9 @@ function MainTabs({ selectedCharacterId, onLogout }: { selectedCharacterId: Char
 }
 
 function AnalysisTab({ navigation }: { navigation: any }) {
+  const insets = useSafeAreaInsets();
   return (
-    <View style={styles.analysisTab}>
+    <View style={[styles.analysisTab, { paddingTop: insets.top + spacing.md }]}>
       <View style={styles.analysisCard}>
         <Text style={styles.analysisTitle}>最新の分析</Text>
         <ScoreCard score={78} rank="B+" title="ダミースコア" />

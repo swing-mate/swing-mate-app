@@ -5,6 +5,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PastelButton } from '../components/PastelButton';
 import { DUMMY_VIDEO_URI } from '../services/analysisService';
 import { colors } from '../theme/colors';
@@ -18,6 +19,7 @@ type Props = CompositeScreenProps<BottomTabScreenProps<TabParamList, 'Record'>, 
 const clubs = ['ドライバー', 'ウッド', 'ユーティリティ', 'アイアン', 'ウェッジ', 'パター'];
 
 export function SwingRecordScreen({ navigation }: Props) {
+  const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<any>(null);
   const [recording, setRecording] = useState(false);
@@ -90,7 +92,7 @@ export function SwingRecordScreen({ navigation }: Props) {
       <View style={styles.overlay}>
         <View style={styles.grid}>{[1, 2].map((line) => <View key={`v${line}`} style={[styles.vLine, { left: `${line * 33.33}%` }]} />)}{[1, 2].map((line) => <View key={`h${line}`} style={[styles.hLine, { top: `${line * 33.33}%` }]} />)}</View>
 
-        <View style={styles.topBar}>
+        <View style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]}>
           <Pressable onPress={handleBack} style={styles.backButton}><Text style={styles.backText}>‹ 戻る</Text></Pressable>
           <Text style={styles.timer}>{new Date(seconds * 1000).toISOString().slice(11, 19)}</Text>
           <View style={styles.topSpacer} />

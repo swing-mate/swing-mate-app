@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CaddieMessage } from '../components/CaddieMessage';
 import { ProgressChart } from '../components/ProgressChart';
 import { dummyHistory, metricProgress, progressLabels, scoreProgress } from '../data/dummyProgress';
@@ -15,10 +16,11 @@ const filters = ['すべて', 'ドライバー', '7番アイアン', 'ウェッ�
 
 export function ProgressScreen({ selectedCharacterId }: Props) {
   const character = getCharacterById(selectedCharacterId);
+  const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState('すべて');
   const history = filter === 'すべて' ? dummyHistory : dummyHistory.filter((item) => item.club === filter);
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={[styles.container, { paddingTop: insets.top + spacing.md }]}>
       <CaddieMessage character={character} message={character.progressComment} compact />
       <View style={styles.filters}>{filters.map((item) => <Pressable key={item} onPress={() => setFilter(item)} style={[styles.chip, filter === item && styles.chipActive]}><Text style={[styles.chipText, filter === item && styles.chipTextActive]}>{item}</Text></Pressable>)}</View>
       <ProgressChart values={scoreProgress} labels={progressLabels} />

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Image, ImageBackground, ImageSourcePropType, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { cancelAnimation, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -26,6 +27,7 @@ const homeBackgroundImage = require('../../assets/backgrounds/home_golf_clubhous
 
 export function HomeScreen({ navigation, selectedCharacterId }: Props) {
   const character = getCharacterById(selectedCharacterId);
+  const insets = useSafeAreaInsets();
   const floatY = useSharedValue(0);
   const bounceScale = useSharedValue(1);
   const [messageIndex, setMessageIndex] = useState(0);
@@ -88,7 +90,7 @@ export function HomeScreen({ navigation, selectedCharacterId }: Props) {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <ImageBackground source={homeBackgroundImage} style={styles.scene} imageStyle={styles.sceneImage} resizeMode="cover">
-        <View style={[styles.speechBubble, { backgroundColor: character.lightColor, borderColor: character.color }]}>
+        <View style={[styles.speechBubble, { backgroundColor: character.lightColor, borderColor: character.color, top: insets.top + spacing.md }]}>
           <Text style={[styles.speechName, { color: character.color }]}>{character.name}</Text>
           <Text style={styles.speechText}>{messages[messageIndex]}</Text>
         </View>

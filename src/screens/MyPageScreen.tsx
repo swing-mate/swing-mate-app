@@ -3,6 +3,7 @@ import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CaddieAvatar } from '../components/CaddieMessage';
 import { PastelButton } from '../components/PastelButton';
 import { getCharacterById } from '../data/characters';
@@ -16,6 +17,7 @@ type Props = CompositeScreenProps<BottomTabScreenProps<TabParamList, 'MyPage'>, 
 
 export function MyPageScreen({ navigation, selectedCharacterId, onLogout }: Props) {
   const character = getCharacterById(selectedCharacterId);
+  const insets = useSafeAreaInsets();
   const handleDelete = () => {
     Alert.alert('データ削除', '練習履歴とベストスイングを削除しますか？', [
       { text: 'キャンセル', style: 'cancel' },
@@ -28,7 +30,7 @@ export function MyPageScreen({ navigation, selectedCharacterId, onLogout }: Prop
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={[styles.container, { paddingTop: insets.top + spacing.md }]}>
       <View style={[styles.profile, { backgroundColor: character.lightColor }]}>
         <CaddieAvatar character={character} size={118} />
         <Text style={[styles.name, { color: character.color }]}>{character.name}</Text>
