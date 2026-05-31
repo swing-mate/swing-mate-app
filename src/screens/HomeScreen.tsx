@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Image, ImageSourcePropType, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, ImageBackground, ImageSourcePropType, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { cancelAnimation, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
 import { CompositeScreenProps } from '@react-navigation/native';
@@ -21,6 +21,8 @@ const characterImageSources: Record<CharacterId, ImageSourcePropType> = {
   rina: require('../../assets/characters/rina.png'),
   yuna: require('../../assets/characters/yuna.png'),
 };
+
+const homeBackgroundImage = require('../../assets/backgrounds/home_golf_clubhouse.png');
 
 export function HomeScreen({ navigation, selectedCharacterId }: Props) {
   const character = getCharacterById(selectedCharacterId);
@@ -86,21 +88,7 @@ export function HomeScreen({ navigation, selectedCharacterId }: Props) {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.homeTitle}>ホーム</Text>
-      <View style={styles.scene}>
-        <View style={styles.sky} />
-        <View style={styles.clubHouse}>
-          <View style={styles.windowRow}>
-            <View style={styles.window} />
-            <View style={styles.window} />
-            <View style={styles.window} />
-            <View style={styles.window} />
-          </View>
-        </View>
-        <View style={styles.green} />
-        <View style={styles.fairway} />
-        <Text style={styles.flag}>⛳️</Text>
-        <View style={[styles.sun, { backgroundColor: character.lightColor }]} />
-
+      <ImageBackground source={homeBackgroundImage} style={styles.scene} imageStyle={styles.sceneImage} resizeMode="cover">
         <View style={[styles.speechBubble, { backgroundColor: character.lightColor, borderColor: character.color }]}>
           <Text style={[styles.speechName, { color: character.color }]}>{character.name}</Text>
           <Text style={styles.speechText}>{messages[messageIndex]}</Text>
@@ -119,7 +107,7 @@ export function HomeScreen({ navigation, selectedCharacterId }: Props) {
             </View>
           </Animated.View>
         </Pressable>
-      </View>
+      </ImageBackground>
 
       <View style={styles.actionCard}>
         <Text style={styles.actionTitle}>今日の練習をはじめよう</Text>
@@ -134,15 +122,8 @@ export function HomeScreen({ navigation, selectedCharacterId }: Props) {
 const styles = StyleSheet.create({
   container: { backgroundColor: colors.background, flexGrow: 1, gap: spacing.md },
   homeTitle: { color: colors.text, fontSize: 24, fontWeight: '900', paddingHorizontal: spacing.lg, paddingTop: spacing.lg, textAlign: 'center' },
-  scene: { backgroundColor: colors.mintLight, height: 620, overflow: 'hidden' },
-  sky: { backgroundColor: '#DFF4FF', height: 300, left: 0, position: 'absolute', right: 0, top: 0 },
-  clubHouse: { alignItems: 'center', alignSelf: 'center', backgroundColor: 'rgba(255,255,255,0.45)', borderColor: 'rgba(255,255,255,0.75)', borderRadius: radius.lg, borderWidth: 1, height: 130, justifyContent: 'center', paddingHorizontal: spacing.lg, position: 'absolute', top: 74, width: '72%' },
-  windowRow: { flexDirection: 'row', gap: spacing.sm },
-  window: { backgroundColor: 'rgba(239,234,253,0.82)', borderColor: colors.surface, borderRadius: radius.sm, borderWidth: 1, height: 42, width: 38 },
-  green: { backgroundColor: '#BDEACD', borderTopLeftRadius: 300, borderTopRightRadius: 300, bottom: -120, height: 390, left: -80, position: 'absolute', right: -80 },
-  fairway: { alignSelf: 'center', backgroundColor: '#E6F8D8', borderTopLeftRadius: 150, borderTopRightRadius: 150, bottom: -52, height: 300, position: 'absolute', width: 210 },
-  flag: { fontSize: 34, position: 'absolute', right: 28, top: 300 },
-  sun: { borderRadius: 40, height: 80, left: 28, opacity: 0.8, position: 'absolute', top: 30, width: 80 },
+  scene: { backgroundColor: colors.mintLight, height: 620, overflow: 'hidden', width: '100%' },
+  sceneImage: { height: '100%', width: '100%' },
   speechBubble: { borderRadius: radius.lg, borderWidth: 2, left: spacing.lg, padding: spacing.md, position: 'absolute', right: spacing.lg, top: 18, zIndex: 4 },
   speechName: { fontSize: 15, fontWeight: '900', marginBottom: spacing.xs },
   speechText: { color: colors.text, fontSize: 15, fontWeight: '800', lineHeight: 22 },
