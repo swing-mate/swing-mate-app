@@ -107,11 +107,14 @@ export function HomeScreen({ navigation, selectedCharacterId }: Props) {
 
         <Pressable onPress={handleCharacterPress} style={styles.characterPressable}>
           <Animated.View style={[styles.standee, characterAnimatedStyle]}>
-            <View style={[styles.standeeBody, { backgroundColor: character.lightColor, borderColor: character.color }]}>
-              <Text style={styles.standeeEmoji}>{character.emoji}</Text>
-              <Text style={[styles.standeeName, { color: character.color }]}>{character.name}</Text>
-              <Text style={styles.standeeRole}>{character.role}</Text>
-              {!imageLoadFailed ? <Image source={characterImageSource} style={styles.characterImage} resizeMode="contain" onError={() => setImageLoadFailed(true)} /> : null}
+            <View style={styles.standeeBody}>
+              {!imageLoadFailed ? <Image source={characterImageSource} style={styles.characterImage} resizeMode="contain" onError={() => setImageLoadFailed(true)} /> : (
+                <View style={[styles.placeholderStandee, { backgroundColor: character.lightColor, borderColor: character.color }]}>
+                  <Text style={styles.standeeEmoji}>{character.emoji}</Text>
+                  <Text style={[styles.standeeName, { color: character.color }]}>{character.name}</Text>
+                  <Text style={styles.standeeRole}>{character.role}</Text>
+                </View>
+              )}
             </View>
           </Animated.View>
         </Pressable>
@@ -139,16 +142,17 @@ const styles = StyleSheet.create({
   fairway: { alignSelf: 'center', backgroundColor: '#E6F8D8', borderTopLeftRadius: 120, borderTopRightRadius: 120, bottom: -40, height: 260, position: 'absolute', width: 170 },
   flag: { fontSize: 34, position: 'absolute', right: 28, top: 260 },
   sun: { borderRadius: 40, height: 80, left: 28, opacity: 0.8, position: 'absolute', top: 30, width: 80 },
-  speechBubble: { borderRadius: radius.lg, borderWidth: 2, left: spacing.md, padding: spacing.md, position: 'absolute', right: spacing.md, top: 150 },
+  speechBubble: { borderRadius: radius.lg, borderWidth: 2, left: spacing.md, padding: spacing.md, position: 'absolute', right: spacing.md, top: 138, zIndex: 4 },
   speechName: { fontSize: 15, fontWeight: '900', marginBottom: spacing.xs },
   speechText: { color: colors.text, fontSize: 15, fontWeight: '800', lineHeight: 22 },
-  characterPressable: { alignItems: 'center', bottom: 28, left: 0, position: 'absolute', right: 0 },
-  standee: { alignItems: 'center' },
-  standeeBody: { alignItems: 'center', borderRadius: 110, borderWidth: 4, height: 280, justifyContent: 'center', shadowColor: colors.shadow, shadowOpacity: 0.35, shadowRadius: 16, width: 220 },
-  standeeEmoji: { fontSize: 78, marginBottom: spacing.sm },
+  characterPressable: { alignItems: 'center', bottom: -18, left: 0, position: 'absolute', right: 0, zIndex: 3 },
+  standee: { alignItems: 'center', width: '100%' },
+  standeeBody: { alignItems: 'center', height: 500, justifyContent: 'flex-end', shadowColor: colors.shadow, shadowOpacity: 0.35, shadowRadius: 16, width: '100%' },
+  placeholderStandee: { alignItems: 'center', borderRadius: 120, borderWidth: 4, height: 300, justifyContent: 'center', marginBottom: spacing.xl, width: 240 },
+  standeeEmoji: { fontSize: 96, marginBottom: spacing.sm },
   standeeName: { fontSize: 30, fontWeight: '900' },
   standeeRole: { color: colors.text, fontSize: 13, fontWeight: '900', marginTop: spacing.xs },
-  characterImage: { bottom: 0, height: 280, left: 0, position: 'absolute', right: 0, top: 0, width: 220 },
+  characterImage: { bottom: 0, height: 500, position: 'absolute', width: '96%' },
   actionCard: { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg, borderWidth: 1, gap: spacing.md, padding: spacing.lg },
   actionTitle: { color: colors.text, fontSize: 18, fontWeight: '900', textAlign: 'center' },
 });

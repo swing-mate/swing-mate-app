@@ -95,9 +95,12 @@ export function CharacterSelectScreen({ navigation, selectedCharacterId, onSelec
             <Pressable onPress={() => handleCardPress(index)} style={[styles.cardWrap, { width: cardWidth, marginRight: spacing.md }]}>
               <Animated.View style={[styles.characterCard, { backgroundColor: item.lightColor, borderColor: isSelected ? item.color : colors.border }, isSelected && cardAnimatedStyle]}>
                 <View style={styles.checkBadge}>{isSelected ? <Text style={[styles.checkText, { color: item.color }]}>✓</Text> : <Text style={styles.emptyCheck}>○</Text>}</View>
-                <View style={[styles.standeeArea, { borderColor: item.color }]}>
-                  <Text style={styles.standeeEmoji}>{item.emoji}</Text>
-                  {!failedImageIds[item.id] ? <Image source={imageSource} style={styles.characterImage} resizeMode="contain" onError={() => setFailedImageIds((current) => ({ ...current, [item.id]: true }))} /> : null}
+                <View style={styles.standeeArea}>
+                  {!failedImageIds[item.id] ? <Image source={imageSource} style={styles.characterImage} resizeMode="contain" onError={() => setFailedImageIds((current) => ({ ...current, [item.id]: true }))} /> : (
+                    <View style={[styles.placeholderStandee, { borderColor: item.color }]}>
+                      <Text style={styles.standeeEmoji}>{item.emoji}</Text>
+                    </View>
+                  )}
                 </View>
                 <Text style={[styles.name, { color: item.color }]}>{item.name}</Text>
                 <Text style={styles.romanName}>{item.romanName}</Text>
@@ -136,13 +139,14 @@ const styles = StyleSheet.create({
   subtitle: { color: colors.text, fontSize: 14, fontWeight: '800', lineHeight: 22, marginTop: spacing.sm, textAlign: 'center' },
   carousel: { alignItems: 'center', paddingVertical: spacing.lg },
   cardWrap: { justifyContent: 'center' },
-  characterCard: { alignItems: 'center', borderRadius: radius.lg, borderWidth: 3, minHeight: 460, padding: spacing.lg, shadowColor: colors.shadow, shadowOpacity: 0.28, shadowRadius: 16 },
+  characterCard: { alignItems: 'center', borderRadius: radius.lg, borderWidth: 3, minHeight: 500, padding: spacing.lg, shadowColor: colors.shadow, shadowOpacity: 0.28, shadowRadius: 16 },
   checkBadge: { alignItems: 'center', alignSelf: 'flex-end', backgroundColor: colors.surface, borderRadius: 18, height: 36, justifyContent: 'center', width: 36 },
   checkText: { fontSize: 24, fontWeight: '900' },
   emptyCheck: { color: colors.muted, fontSize: 18, fontWeight: '900' },
-  standeeArea: { alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.72)', borderRadius: 95, borderWidth: 2, height: 190, justifyContent: 'center', marginBottom: spacing.md, overflow: 'hidden', width: 190 },
-  standeeEmoji: { fontSize: 82 },
-  characterImage: { bottom: 0, height: 190, left: 0, position: 'absolute', right: 0, top: 0, width: 190 },
+  standeeArea: { alignItems: 'center', height: 280, justifyContent: 'flex-end', marginBottom: spacing.md, overflow: 'visible', width: '100%' },
+  placeholderStandee: { alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.72)', borderRadius: 100, borderWidth: 2, height: 200, justifyContent: 'center', width: 200 },
+  standeeEmoji: { fontSize: 92 },
+  characterImage: { height: 280, width: '100%' },
   name: { fontSize: 30, fontWeight: '900' },
   romanName: { color: colors.muted, fontSize: 14, fontWeight: '800', marginTop: spacing.xs },
   role: { borderRadius: radius.pill, color: colors.surface, fontSize: 13, fontWeight: '900', marginTop: spacing.md, overflow: 'hidden', paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
