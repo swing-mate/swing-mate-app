@@ -19,7 +19,6 @@ export function ProgressScreen({ selectedCharacterId }: Props) {
   const history = filter === 'すべて' ? dummyHistory : dummyHistory.filter((item) => item.club === filter);
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>成長グラフ</Text>
       <CaddieMessage character={character} message={character.progressComment} compact />
       <View style={styles.filters}>{filters.map((item) => <Pressable key={item} onPress={() => setFilter(item)} style={[styles.chip, filter === item && styles.chipActive]}><Text style={[styles.chipText, filter === item && styles.chipTextActive]}>{item}</Text></Pressable>)}</View>
       <ProgressChart values={scoreProgress} labels={progressLabels} />
@@ -31,7 +30,6 @@ export function ProgressScreen({ selectedCharacterId }: Props) {
 
 const styles = StyleSheet.create({
   container: { backgroundColor: colors.background, padding: spacing.lg, gap: spacing.md },
-  title: { color: colors.text, fontSize: 24, fontWeight: '900', textAlign: 'center' },
   filters: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   chip: { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.pill, borderWidth: 1, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
   chipActive: { backgroundColor: colors.pink, borderColor: colors.pink },

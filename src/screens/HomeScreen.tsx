@@ -79,7 +79,7 @@ export function HomeScreen({ navigation, selectedCharacterId }: Props) {
     if (!result.canceled && result.assets[0]?.uri) {
       navigation.getParent()?.navigate('AnalysisLoading', {
         videoUri: result.assets[0].uri,
-        club: '7番アイアン',
+        club: 'アイアン',
         cameraAngle: 'front',
       });
     }
@@ -87,7 +87,6 @@ export function HomeScreen({ navigation, selectedCharacterId }: Props) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.homeTitle}>ホーム</Text>
       <ImageBackground source={homeBackgroundImage} style={styles.scene} imageStyle={styles.sceneImage} resizeMode="cover">
         <View style={[styles.speechBubble, { backgroundColor: character.lightColor, borderColor: character.color }]}>
           <Text style={[styles.speechName, { color: character.color }]}>{character.name}</Text>
@@ -121,20 +120,19 @@ export function HomeScreen({ navigation, selectedCharacterId }: Props) {
 
 const styles = StyleSheet.create({
   container: { backgroundColor: colors.background, flexGrow: 1, gap: spacing.md },
-  homeTitle: { color: colors.text, fontSize: 24, fontWeight: '900', paddingHorizontal: spacing.lg, paddingTop: spacing.lg, textAlign: 'center' },
-  scene: { backgroundColor: colors.mintLight, height: 620, overflow: 'hidden', width: '100%' },
+  scene: { backgroundColor: colors.mintLight, height: 640, overflow: 'hidden', width: '100%' },
   sceneImage: { height: '100%', width: '100%' },
-  speechBubble: { borderRadius: radius.lg, borderWidth: 2, left: spacing.lg, padding: spacing.md, position: 'absolute', right: spacing.lg, top: 18, zIndex: 4 },
-  speechName: { fontSize: 15, fontWeight: '900', marginBottom: spacing.xs },
-  speechText: { color: colors.text, fontSize: 15, fontWeight: '800', lineHeight: 22 },
+  speechBubble: { borderRadius: radius.lg, borderWidth: 2, left: spacing.lg, padding: spacing.sm, position: 'absolute', right: spacing.lg, top: spacing.lg, zIndex: 4 },
+  speechName: { fontSize: 14, fontWeight: '900', marginBottom: 2 },
+  speechText: { color: colors.text, fontSize: 14, fontWeight: '800', lineHeight: 20 },
   characterPressable: { alignItems: 'center', bottom: -8, left: 0, position: 'absolute', right: 0, zIndex: 3 },
   standee: { alignItems: 'center', width: '100%' },
-  standeeBody: { alignItems: 'center', height: 540, justifyContent: 'flex-end', shadowColor: colors.shadow, shadowOpacity: 0.35, shadowRadius: 16, width: '100%' },
+  standeeBody: { alignItems: 'center', height: 560, justifyContent: 'flex-end', shadowColor: colors.shadow, shadowOpacity: 0.35, shadowRadius: 16, width: '100%' },
   placeholderStandee: { alignItems: 'center', borderRadius: 120, borderWidth: 4, height: 300, justifyContent: 'center', marginBottom: spacing.xl, width: 240 },
   standeeEmoji: { fontSize: 96, marginBottom: spacing.sm },
   standeeName: { fontSize: 30, fontWeight: '900' },
   standeeRole: { color: colors.text, fontSize: 13, fontWeight: '900', marginTop: spacing.xs },
-  characterImage: { bottom: 0, height: 540, position: 'absolute', width: '100%' },
+  characterImage: { bottom: 0, height: 560, position: 'absolute', width: '100%' },
   actionCard: { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg, borderWidth: 1, gap: spacing.md, marginHorizontal: spacing.lg, padding: spacing.lg },
   actionTitle: { color: colors.text, fontSize: 18, fontWeight: '900', textAlign: 'center' },
 });

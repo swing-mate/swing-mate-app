@@ -106,9 +106,12 @@ export function SwingRecordScreen({ navigation }: Props) {
           </View>
           <Text style={styles.label}>使用クラブ</Text>
           <View style={styles.options}>{clubs.map((item) => <Chip key={item} label={item} active={club === item} onPress={() => setClub(item)} />)}</View>
-          <Pressable onPress={recording ? stopRecording : startRecording} style={[styles.recordButton, recording && styles.stopButton]}>
-            <View style={[styles.recordInner, recording && styles.stopInner]} />
-          </Pressable>
+          <View style={styles.recordArea}>
+            <Pressable onPress={recording ? stopRecording : startRecording} style={[styles.recordButton, recording && styles.stopButton]}>
+              <View style={[styles.recordInner, recording && styles.stopInner]} />
+            </Pressable>
+            <Text style={styles.recordLabel}>{recording ? '録画停止' : '録画開始'}</Text>
+          </View>
           <View style={styles.bottomActions}>
             <PastelButton label="動画を選択" onPress={pickVideo} variant="ghost" style={styles.actionButton} />
             <PastelButton label="ダミー分析" onPress={() => goLoading(DUMMY_VIDEO_URI)} variant="secondary" style={styles.actionButton} />
@@ -144,10 +147,12 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: colors.pink, borderColor: colors.pink },
   chipText: { color: colors.muted, fontWeight: '800' },
   chipTextActive: { color: colors.surface },
-  recordButton: { alignItems: 'center', alignSelf: 'center', backgroundColor: colors.surface, borderColor: colors.pink, borderRadius: 42, borderWidth: 5, height: 84, justifyContent: 'center', marginTop: spacing.sm, width: 84 },
+  recordArea: { alignItems: 'center', marginTop: spacing.sm },
+  recordButton: { alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.pink, borderRadius: 42, borderWidth: 5, height: 84, justifyContent: 'center', width: 84 },
   stopButton: { borderColor: colors.danger },
   recordInner: { backgroundColor: colors.pink, borderRadius: 30, height: 58, width: 58 },
   stopInner: { backgroundColor: colors.danger, borderRadius: radius.sm, height: 34, width: 34 },
+  recordLabel: { color: colors.text, fontSize: 14, fontWeight: '900', marginTop: spacing.xs },
   bottomActions: { flexDirection: 'row', gap: spacing.sm },
   actionButton: { flex: 1 },
 });

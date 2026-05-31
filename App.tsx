@@ -86,19 +86,18 @@ function MainTabs({ selectedCharacterId, onLogout }: { selectedCharacterId: Char
   return (
     <Tab.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: colors.background },
-        headerTitleStyle: { color: colors.text, fontWeight: '900' },
+        headerShown: false,
         tabBarActiveTintColor: colors.pink,
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border, height: 70, paddingBottom: 10, paddingTop: 8 },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '800' },
       }}
     >
-      <Tab.Screen name="Home" options={{ title: 'ホーム', tabBarIcon: ({ color }) => <Text style={{ color }}>🏠</Text> }}>{(props) => <HomeScreen {...props} selectedCharacterId={selectedCharacterId} />}</Tab.Screen>
-      <Tab.Screen name="Record" options={{ title: '撮影', tabBarIcon: ({ color }) => <Text style={{ color }}>📷</Text> }}>{(props) => <SwingRecordScreen {...props} selectedCharacterId={selectedCharacterId} />}</Tab.Screen>
-      <Tab.Screen name="Analysis" options={{ title: '分析', tabBarIcon: ({ color }) => <Text style={{ color }}>📊</Text> }}>{(props) => <AnalysisTab {...props} />}</Tab.Screen>
-      <Tab.Screen name="Progress" options={{ title: '成長', tabBarIcon: ({ color }) => <Text style={{ color }}>📈</Text> }}>{(props) => <ProgressScreen {...props} selectedCharacterId={selectedCharacterId} />}</Tab.Screen>
-      <Tab.Screen name="MyPage" options={{ title: 'マイページ', tabBarIcon: ({ color }) => <Text style={{ color }}>👤</Text> }}>{(props) => <MyPageScreen {...props} selectedCharacterId={selectedCharacterId} onLogout={onLogout} />}</Tab.Screen>
+      <Tab.Screen name="Home" options={{ tabBarLabel: 'ホーム', tabBarIcon: ({ color }) => <Text style={{ color }}>🏠</Text> }}>{(props) => <HomeScreen {...props} selectedCharacterId={selectedCharacterId} />}</Tab.Screen>
+      <Tab.Screen name="Record" options={{ tabBarLabel: '撮影', tabBarIcon: ({ color }) => <Text style={{ color }}>📷</Text> }}>{(props) => <SwingRecordScreen {...props} selectedCharacterId={selectedCharacterId} />}</Tab.Screen>
+      <Tab.Screen name="Analysis" options={{ tabBarLabel: '分析', tabBarIcon: ({ color }) => <Text style={{ color }}>📊</Text> }}>{(props) => <AnalysisTab {...props} />}</Tab.Screen>
+      <Tab.Screen name="Progress" options={{ tabBarLabel: '成長', tabBarIcon: ({ color }) => <Text style={{ color }}>📈</Text> }}>{(props) => <ProgressScreen {...props} selectedCharacterId={selectedCharacterId} />}</Tab.Screen>
+      <Tab.Screen name="MyPage" options={{ tabBarLabel: 'マイページ', tabBarIcon: ({ color }) => <Text style={{ color }}>👤</Text> }}>{(props) => <MyPageScreen {...props} selectedCharacterId={selectedCharacterId} onLogout={onLogout} />}</Tab.Screen>
     </Tab.Navigator>
   );
 }
