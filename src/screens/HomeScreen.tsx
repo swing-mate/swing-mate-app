@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Image, ImageSourcePropType, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, Image, ImageSourcePropType, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated, { cancelAnimation, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -14,25 +15,32 @@ import { RootStackParamList, TabParamList } from '../types/navigation';
 type Props = CompositeScreenProps<BottomTabScreenProps<TabParamList, 'Home'>, NativeStackScreenProps<RootStackParamList>> & { selectedCharacterId: CharacterId | null };
 
 const characterImageSources: Partial<Record<CharacterId, ImageSourcePropType>> = {};
+// 後から画像を追加する場合は sakura.png / minami.png / himari.png を配置し、ここに require を追加します。
 
 export function HomeScreen({ navigation, selectedCharacterId }: Props) {
   const character = getCharacterById(selectedCharacterId);
-  const floatAnim = useRef(new Animated.Value(0)).current;
-  const bounceAnim = useRef(new Animated.Value(1)).current;
+  const floatY = useSharedValue(0);
+  const bounceScale = useSharedValue(1);
   const [messageIndex, setMessageIndex] = useState(0);
   const messages = [character.homeComment, character.comment, character.tone, character.compareComment];
   const characterImageSource = characterImageSources[character.id];
 
   useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(floatAnim, { toValue: -10, duration: 1400, useNativeDriver: true }),
-        Animated.timing(floatAnim, { toValue: 0, duration: 1400, useNativeDriver: true }),
-      ]),
+    floatY.value = withRepeat(
+      withSequence(
+        withTiming(-10, { duration: 1400 }),
+        withTiming(0, { duration: 1400 }),
+      ),
+      -1,
+      false,
     );
-    loop.start();
-    return () => loop.stop();
-  }, [floatAnim]);
+
+    return () => cancelAnimation(floatY);
+  }, [floatY]);
+
+  const characterAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: floatY.value }, { scale: bounceScale.value }],
+  }));
 
   useEffect(() => {
     setMessageIndex(0);
@@ -40,10 +48,10 @@ export function HomeScreen({ navigation, selectedCharacterId }: Props) {
 
   const handleCharacterPress = () => {
     setMessageIndex((current: number) => (current + 1) % messages.length);
-    Animated.sequence([
-      Animated.spring(bounceAnim, { toValue: 1.08, friction: 3, useNativeDriver: true }),
-      Animated.spring(bounceAnim, { toValue: 1, friction: 4, useNativeDriver: true }),
-    ]).start();
+    bounceScale.value = withSequence(
+      withSpring(1.08, { damping: 8, stiffness: 220 }),
+      withSpring(1, { damping: 9, stiffness: 180 }),
+    );
   };
 
   const pickVideo = async () => {
@@ -74,6 +82,11 @@ export function HomeScreen({ navigation, selectedCharacterId }: Props) {
         <View style={styles.sky} />
         <View style={styles.clubHouse}>
           <Text style={styles.clubHouseText}>Swing Mate Club House</Text>
+          <View style={styles.windowRow}>
+            <View style={styles.window} />
+            <View style={styles.window} />
+            <View style={styles.window} />
+          </View>
         </View>
         <View style={styles.green} />
         <View style={styles.fairway} />
@@ -86,7 +99,7 @@ export function HomeScreen({ navigation, selectedCharacterId }: Props) {
         </View>
 
         <Pressable onPress={handleCharacterPress} style={styles.characterPressable}>
-          <Animated.View style={[styles.standee, { transform: [{ translateY: floatAnim }, { scale: bounceAnim }] }]}>
+          <Animated.View style={[styles.standee, characterAnimatedStyle]}>
             <View style={[styles.standeeBody, { backgroundColor: character.lightColor, borderColor: character.color }]}>
               <Text style={styles.standeeEmoji}>{character.emoji}</Text>
               <Text style={[styles.standeeName, { color: character.color }]}>{character.name}</Text>
@@ -113,6 +126,8 @@ const styles = StyleSheet.create({
   sky: { backgroundColor: '#DFF4FF', height: 250, left: 0, position: 'absolute', right: 0, top: 0 },
   clubHouse: { alignItems: 'center', alignSelf: 'center', backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.md, borderWidth: 1, paddingHorizontal: spacing.lg, paddingVertical: spacing.md, position: 'absolute', top: 68 },
   clubHouseText: { color: colors.muted, fontSize: 12, fontWeight: '900' },
+  windowRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+  window: { backgroundColor: colors.lavenderLight, borderColor: colors.border, borderRadius: radius.sm, borderWidth: 1, height: 18, width: 28 },
   green: { backgroundColor: '#BDEACD', borderTopLeftRadius: 260, borderTopRightRadius: 260, bottom: -120, height: 360, left: -80, position: 'absolute', right: -80 },
   fairway: { alignSelf: 'center', backgroundColor: '#E6F8D8', borderTopLeftRadius: 120, borderTopRightRadius: 120, bottom: -40, height: 260, position: 'absolute', width: 170 },
   flag: { fontSize: 34, position: 'absolute', right: 28, top: 260 },
