@@ -29,6 +29,7 @@ export function VideoAnalysisPlayerScreen({ navigation, route }: Props) {
   const [positionMillis, setPositionMillis] = useState(0);
   const [durationMillis, setDurationMillis] = useState(1);
   const [speed, setSpeed] = useState(1.0);
+  const [finished, setFinished] = useState(false);
   const [drawingEnabled, setDrawingEnabled] = useState(false);
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   const [seekWidth, setSeekWidth] = useState(1);
@@ -55,6 +56,11 @@ export function VideoAnalysisPlayerScreen({ navigation, route }: Props) {
       setPlaying(false);
       return;
     }
+    if (finished || positionMillis >= durationMillis - 250) {
+      await videoRef.current?.setPositionAsync(0);
+      setPositionMillis(0);
+      setFinished(false);
+    }
     await videoRef.current?.setRateAsync(speed, true);
     await videoRef.current?.playAsync();
     setPlaying(true);
@@ -69,6 +75,7 @@ export function VideoAnalysisPlayerScreen({ navigation, route }: Props) {
     const nextPosition = Math.max(0, Math.min(1, x / seekWidth)) * durationMillis;
     await videoRef.current?.setPositionAsync(nextPosition);
     setPositionMillis(nextPosition);
+    setFinished(false);
   };
 
   const handleSeekLayout = (event: LayoutChangeEvent) => setSeekWidth(event.nativeEvent.layout.width || 1);
@@ -90,7 +97,15 @@ export function VideoAnalysisPlayerScreen({ navigation, route }: Props) {
           style={StyleSheet.absoluteFill}
           onPlaybackStatusUpdate={(status: any) => {
             if (!status?.isLoaded) return;
+            if (status.didJustFinish) {
+              setPlaying(false);
+              setFinished(true);
+              setPositionMillis(status.durationMillis || status.positionMillis || 0);
+              setDurationMillis(status.durationMillis || 1);
+              return;
+            }
             setPlaying(!!status.isPlaying);
+            setFinished(false);
             setPositionMillis(status.positionMillis || 0);
             setDurationMillis(status.durationMillis || 1);
           }}

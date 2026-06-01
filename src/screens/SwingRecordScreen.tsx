@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { CompositeScreenProps } from '@react-navigation/native';
@@ -23,6 +23,7 @@ export function SwingRecordScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<any>(null);
+  const [cameraMode, setCameraMode] = useState(false);
   const [recording, setRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [cameraAngle, setCameraAngle] = useState<CameraAngle>('front');
@@ -31,6 +32,11 @@ export function SwingRecordScreen({ navigation }: Props) {
   useEffect(() => {
     if (!permission?.granted) requestPermission();
   }, [permission?.granted, requestPermission]);
+
+  useEffect(() => {
+    navigation.setOptions({ tabBarStyle: cameraMode ? { display: 'none' } : visibleTabBarStyle });
+    return () => navigation.setOptions({ tabBarStyle: visibleTabBarStyle });
+  }, [cameraMode, navigation]);
 
   useEffect(() => {
     if (!recording) return undefined;
@@ -65,7 +71,6 @@ export function SwingRecordScreen({ navigation }: Props) {
       return;
     }
     setSeconds(0);
-    navigation.setOptions({ tabBarStyle: { display: 'none' } });
     setRecording(true);
     try {
       const video = await cameraRef.current.recordAsync({ maxDuration: 20 });
@@ -74,7 +79,7 @@ export function SwingRecordScreen({ navigation }: Props) {
       goPlayer(DUMMY_VIDEO_URI);
     } finally {
       setRecording(false);
-      navigation.setOptions({ tabBarStyle: visibleTabBarStyle });
+      setCameraMode(false);
     }
   };
 
@@ -87,8 +92,33 @@ export function SwingRecordScreen({ navigation }: Props) {
       stopRecording();
       return;
     }
+    if (cameraMode) {
+      setCameraMode(false);
+      return;
+    }
     navigation.navigate('Home');
   };
+
+  if (!cameraMode) {
+    return (
+      <ScrollView contentContainerStyle={[styles.prepContainer, { paddingTop: insets.top + spacing.md }]}>
+        <View style={styles.prepCard}>
+          <Text style={styles.prepTitle}>撮影準備</Text>
+          <Text style={styles.prepText}>撮影角度とクラブを選んでから、カメラ画面で録画を開始します。</Text>
+          <Text style={styles.label}>撮影角度</Text>
+          <View style={styles.options}>
+            <Chip label="正面" active={cameraAngle === 'front'} onPress={() => setCameraAngle('front')} />
+            <Chip label="後方" active={cameraAngle === 'downTheLine'} onPress={() => setCameraAngle('downTheLine')} />
+          </View>
+          <Text style={styles.label}>使用クラブ</Text>
+          <View style={styles.options}>{clubs.map((item) => <Chip key={item} label={item} active={club === item} onPress={() => setClub(item)} />)}</View>
+          <PastelButton label="カメラを開く" onPress={() => setCameraMode(true)} />
+          <PastelButton label="動画を選択" onPress={pickVideo} variant="ghost" />
+          <PastelButton label="ダミー分析" onPress={() => goLoading(DUMMY_VIDEO_URI)} variant="secondary" />
+        </View>
+      </ScrollView>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -104,22 +134,7 @@ export function SwingRecordScreen({ navigation }: Props) {
 
         <Text style={styles.tip}>全身が入るように撮影してね</Text>
 
-        <View style={[recording ? styles.captureControl : styles.waitingControls, { paddingBottom: insets.bottom + spacing.lg }]}>
-          {!recording && (
-            <View style={styles.compactPanel}>
-              <Text style={styles.label}>撮影角度</Text>
-              <View style={styles.options}>
-                <Chip label="正面" active={cameraAngle === 'front'} onPress={() => setCameraAngle('front')} />
-                <Chip label="後方" active={cameraAngle === 'downTheLine'} onPress={() => setCameraAngle('downTheLine')} />
-              </View>
-              <Text style={styles.label}>使用クラブ</Text>
-              <View style={styles.options}>{clubs.map((item) => <Chip key={item} label={item} active={club === item} onPress={() => setClub(item)} />)}</View>
-              <View style={styles.prepActions}>
-                <PastelButton label="動画を選択" onPress={pickVideo} variant="ghost" style={styles.actionButton} />
-                <PastelButton label="ダミー分析" onPress={() => goLoading(DUMMY_VIDEO_URI)} variant="secondary" style={styles.actionButton} />
-              </View>
-            </View>
-          )}
+        <View style={[styles.captureControl, { paddingBottom: insets.bottom + spacing.lg }]}>
           <Pressable onPress={recording ? stopRecording : startRecording} style={[styles.recordButton, recording && styles.stopButton]}>
             <View style={recording ? styles.stopInner : styles.recordInner} />
           </Pressable>
@@ -135,6 +150,10 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
 }
 
 const styles = StyleSheet.create({
+  prepContainer: { backgroundColor: colors.background, flexGrow: 1, gap: spacing.md, padding: spacing.lg },
+  prepCard: { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg, borderWidth: 1, gap: spacing.md, padding: spacing.lg },
+  prepTitle: { color: colors.text, fontSize: 24, fontWeight: '900', textAlign: 'center' },
+  prepText: { color: colors.muted, fontSize: 14, fontWeight: '700', lineHeight: 22, textAlign: 'center' },
   container: { backgroundColor: '#111827', flex: 1 },
   cameraFallback: { alignItems: 'center', backgroundColor: '#B9DCD6', flex: 1, justifyContent: 'center' },
   fallbackText: { color: colors.text, fontWeight: '800' },
@@ -155,10 +174,6 @@ const styles = StyleSheet.create({
   chipText: { color: colors.muted, fontWeight: '800' },
   chipTextActive: { color: colors.surface },
   captureControl: { alignItems: 'center', bottom: 0, left: 0, position: 'absolute', right: 0 },
-  waitingControls: { alignItems: 'center', bottom: 0, gap: spacing.sm, left: 0, position: 'absolute', right: 0 },
-  compactPanel: { backgroundColor: 'rgba(255,248,251,0.9)', borderRadius: radius.lg, gap: spacing.sm, marginHorizontal: spacing.md, padding: spacing.md },
-  prepActions: { flexDirection: 'row', gap: spacing.sm },
-  actionButton: { flex: 1 },
   recordButton: { alignItems: 'center', backgroundColor: colors.surface, borderColor: colors.pink, borderRadius: 42, borderWidth: 5, height: 84, justifyContent: 'center', width: 84 },
   stopButton: { borderColor: colors.danger },
   recordInner: { backgroundColor: colors.pink, borderRadius: 30, height: 58, width: 58 },
