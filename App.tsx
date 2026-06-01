@@ -20,6 +20,7 @@ import { MyPageScreen } from './src/screens/MyPageScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { ProgressScreen } from './src/screens/ProgressScreen';
 import { SwingRecordScreen } from './src/screens/SwingRecordScreen';
+import { VideoAnalysisPlayerScreen } from './src/screens/VideoAnalysisPlayerScreen';
 import { colors } from './src/theme/colors';
 import { radius, spacing } from './src/theme/spacing';
 import { CharacterId } from './src/types/character';
@@ -78,6 +79,7 @@ export default function App() {
         <Stack.Screen name="MainTabs">{() => <MainTabs selectedCharacterId={selectedCharacterId} onLogout={handleLogout} />}</Stack.Screen>
         <Stack.Screen name="AnalysisLoading">{(props) => <AnalysisLoadingScreen {...props} selectedCharacterId={selectedCharacterId} />}</Stack.Screen>
         <Stack.Screen name="AnalysisResult">{(props) => <AnalysisResultScreen {...props} selectedCharacterId={selectedCharacterId} />}</Stack.Screen>
+        <Stack.Screen name="VideoAnalysisPlayer" component={VideoAnalysisPlayerScreen} />
         <Stack.Screen name="BestCompare">{(props) => <BestSwingCompareScreen {...props} selectedCharacterId={selectedCharacterId} />}</Stack.Screen>
       </Stack.Navigator>
       </NavigationContainer>

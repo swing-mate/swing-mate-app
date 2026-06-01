@@ -1,0 +1,152 @@
+import React, { useRef, useState } from 'react';
+import { LayoutChangeEvent, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ResizeMode, Video } from 'expo-av';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import Svg, { Polyline } from 'react-native-svg';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DUMMY_VIDEO_URI } from '../services/analysisService';
+import { colors } from '../theme/colors';
+import { radius, spacing } from '../theme/spacing';
+import { RootStackParamList } from '../types/navigation';
+
+type Props = NativeStackScreenProps<RootStackParamList, 'VideoAnalysisPlayer'>;
+type Point = { x: number; y: number };
+type Stroke = { id: string; points: Point[] };
+
+const speedOptions = [0.25, 0.5, 1.0, 2.0];
+
+const formatTime = (millis: number) => {
+  const totalSeconds = Math.floor(millis / 1000);
+  const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+  const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+  return `${minutes}:${seconds}`;
+};
+
+export function VideoAnalysisPlayerScreen({ navigation, route }: Props) {
+  const insets = useSafeAreaInsets();
+  const videoRef = useRef<Video>(null);
+  const [playing, setPlaying] = useState(false);
+  const [positionMillis, setPositionMillis] = useState(0);
+  const [durationMillis, setDurationMillis] = useState(1);
+  const [speed, setSpeed] = useState(1.0);
+  const [drawingEnabled, setDrawingEnabled] = useState(false);
+  const [strokes, setStrokes] = useState<Stroke[]>([]);
+  const [seekWidth, setSeekWidth] = useState(1);
+  const videoUri = route.params.videoUri || DUMMY_VIDEO_URI;
+
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => drawingEnabled,
+    onMoveShouldSetPanResponder: () => drawingEnabled,
+    onPanResponderGrant: (event) => {
+      const { locationX, locationY } = event.nativeEvent;
+      setStrokes((current) => [...current, { id: `${Date.now()}`, points: [{ x: locationX, y: locationY }] }]);
+    },
+    onPanResponderMove: (event) => {
+      const { locationX, locationY } = event.nativeEvent;
+      setStrokes((current) => current.map((stroke, index) => (
+        index === current.length - 1 ? { ...stroke, points: [...stroke.points, { x: locationX, y: locationY }] } : stroke
+      )));
+    },
+  });
+
+  const togglePlay = async () => {
+    if (playing) {
+      await videoRef.current?.pauseAsync();
+      setPlaying(false);
+      return;
+    }
+    await videoRef.current?.setRateAsync(speed, true);
+    await videoRef.current?.playAsync();
+    setPlaying(true);
+  };
+
+  const changeSpeed = async (nextSpeed: number) => {
+    setSpeed(nextSpeed);
+    await videoRef.current?.setRateAsync(nextSpeed, true);
+  };
+
+  const seekTo = async (x: number) => {
+    const nextPosition = Math.max(0, Math.min(1, x / seekWidth)) * durationMillis;
+    await videoRef.current?.setPositionAsync(nextPosition);
+    setPositionMillis(nextPosition);
+  };
+
+  const handleSeekLayout = (event: LayoutChangeEvent) => setSeekWidth(event.nativeEvent.layout.width || 1);
+
+  return (
+    <View style={styles.container}>
+      <View style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]}>
+        <Pressable onPress={() => navigation.goBack()} style={styles.topButton}><Text style={styles.topButtonText}>‹ 戻る</Text></Pressable>
+        <Pressable onPress={() => setDrawingEnabled((current) => !current)} style={[styles.topButton, drawingEnabled && styles.topButtonActive]}><Text style={[styles.topButtonText, drawingEnabled && styles.topButtonActiveText]}>描画{drawingEnabled ? 'ON' : 'OFF'}</Text></Pressable>
+        <Pressable onPress={() => setStrokes([])} style={styles.topButton}><Text style={styles.topButtonText}>クリア</Text></Pressable>
+      </View>
+
+      <View style={styles.videoWrap}>
+        <Video
+          ref={videoRef}
+          source={{ uri: videoUri }}
+          resizeMode={ResizeMode.CONTAIN}
+          shouldPlay={false}
+          style={StyleSheet.absoluteFill}
+          onPlaybackStatusUpdate={(status: any) => {
+            if (!status?.isLoaded) return;
+            setPlaying(!!status.isPlaying);
+            setPositionMillis(status.positionMillis || 0);
+            setDurationMillis(status.durationMillis || 1);
+          }}
+        />
+        <View pointerEvents={drawingEnabled ? 'auto' : 'none'} style={StyleSheet.absoluteFill} {...panResponder.panHandlers}>
+          <Svg height="100%" width="100%">
+            {strokes.map((stroke) => <Polyline key={stroke.id} points={stroke.points.map((point) => `${point.x},${point.y}`).join(' ')} fill="none" stroke={colors.pink} strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} />)}
+          </Svg>
+        </View>
+      </View>
+
+      <View style={[styles.controls, { paddingBottom: insets.bottom + spacing.md }]}>
+        <View style={styles.playRow}>
+          <Pressable onPress={togglePlay} style={styles.playButton}><Text style={styles.playText}>{playing ? '停止' : '再生'}</Text></Pressable>
+          <Text style={styles.timeText}>{formatTime(positionMillis)} / {formatTime(durationMillis)}</Text>
+        </View>
+        <Pressable style={styles.seekTrack} onLayout={handleSeekLayout} onPress={(event) => seekTo(event.nativeEvent.locationX)}>
+          <View style={[styles.seekFill, { width: `${Math.min(100, (positionMillis / durationMillis) * 100)}%` }]} />
+          <View style={[styles.seekThumb, { left: `${Math.min(98, (positionMillis / durationMillis) * 100)}%` }]} />
+        </Pressable>
+        <Text style={styles.sectionLabel}>再生速度</Text>
+        <View style={styles.speedRow}>{speedOptions.map((option) => (
+          <Pressable key={option} onPress={() => changeSpeed(option)} style={[styles.speedChip, speed === option && styles.speedChipActive]}>
+            <Text style={[styles.speedText, speed === option && styles.speedTextActive]}>{option.toFixed(option === 1 || option === 2 ? 1 : 2)}x</Text>
+          </Pressable>
+        ))}</View>
+        <Pressable onPress={() => navigation.replace('AnalysisLoading', { videoUri, club: route.params.club, cameraAngle: route.params.cameraAngle })} style={styles.analysisButton}>
+          <Text style={styles.analysisButtonText}>この動画を分析する</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { backgroundColor: '#111827', flex: 1 },
+  topBar: { alignItems: 'center', backgroundColor: 'rgba(17,24,39,0.92)', flexDirection: 'row', gap: spacing.sm, justifyContent: 'space-between', paddingHorizontal: spacing.md, paddingBottom: spacing.sm },
+  topButton: { backgroundColor: 'rgba(255,255,255,0.16)', borderRadius: radius.pill, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
+  topButtonActive: { backgroundColor: colors.pink },
+  topButtonText: { color: colors.surface, fontSize: 13, fontWeight: '900' },
+  topButtonActiveText: { color: colors.surface },
+  videoWrap: { backgroundColor: '#000', flex: 1, overflow: 'hidden' },
+  controls: { backgroundColor: 'rgba(17,24,39,0.96)', gap: spacing.md, padding: spacing.md },
+  playRow: { alignItems: 'center', flexDirection: 'row', gap: spacing.md },
+  playButton: { alignItems: 'center', backgroundColor: colors.pink, borderRadius: radius.pill, height: 52, justifyContent: 'center', width: 86 },
+  playText: { color: colors.surface, fontSize: 15, fontWeight: '900' },
+  timeText: { color: colors.surface, flex: 1, fontSize: 15, fontWeight: '800', textAlign: 'right' },
+  seekTrack: { backgroundColor: 'rgba(255,255,255,0.28)', borderRadius: radius.pill, height: 12, justifyContent: 'center' },
+  seekFill: { backgroundColor: colors.pink, borderRadius: radius.pill, bottom: 0, left: 0, position: 'absolute', top: 0 },
+  seekThumb: { backgroundColor: colors.surface, borderRadius: 14, height: 28, marginLeft: -14, position: 'absolute', width: 28 },
+  sectionLabel: { color: colors.surface, fontSize: 13, fontWeight: '900' },
+  speedRow: { flexDirection: 'row', gap: spacing.sm },
+  speedChip: { backgroundColor: 'rgba(255,255,255,0.14)', borderColor: 'rgba(255,255,255,0.24)', borderRadius: radius.pill, borderWidth: 1, flex: 1, paddingVertical: spacing.sm },
+  speedChipActive: { backgroundColor: colors.lavender, borderColor: colors.lavender },
+  speedText: { color: colors.surface, fontWeight: '900', textAlign: 'center' },
+  speedTextActive: { color: colors.surface },
+  analysisButton: { alignItems: 'center', backgroundColor: colors.mint, borderRadius: radius.pill, paddingVertical: spacing.md },
+  analysisButtonText: { color: colors.surface, fontSize: 15, fontWeight: '900' },
+});

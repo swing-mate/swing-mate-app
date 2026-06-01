@@ -16,5 +16,6 @@ export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<TabParamList> | undefined;
   AnalysisLoading: { videoUri?: string; club: string; cameraAngle: CameraAngle };
   AnalysisResult: { videoUri?: string; club: string; cameraAngle: CameraAngle };
+  VideoAnalysisPlayer: { videoUri?: string; club: string; cameraAngle: CameraAngle };
   BestCompare: { currentVideoUri?: string } | undefined;
 };
