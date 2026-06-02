@@ -51,11 +51,11 @@ export function AnalysisResultScreen({ navigation, route, selectedCharacterId }:
   const onPreviewLayout = (event: LayoutChangeEvent) => setPreviewSize({ height: event.nativeEvent.layout.height || 1, width: event.nativeEvent.layout.width || 1 });
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, { paddingTop: insets.top + spacing.md }]}>
+    <ScrollView contentContainerStyle={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
       <ScoreCard score={dummyAnalysis.totalScore} rank={dummyAnalysis.rank} title="総合スコア" />
       {editedVideo ? (
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>動画に描いた補助線</Text>
+          <Text style={styles.cardTitle}>補助線つき動画</Text>
           <View style={styles.videoPreview} onLayout={onPreviewLayout}>
             <Video source={{ uri: editedVideo.videoUri }} resizeMode={ResizeMode.CONTAIN} shouldPlay={false} style={StyleSheet.absoluteFill} />
             <Svg height="100%" width="100%" style={StyleSheet.absoluteFill}>
@@ -66,7 +66,7 @@ export function AnalysisResultScreen({ navigation, route, selectedCharacterId }:
               })}
             </Svg>
           </View>
-          <Text style={styles.editedMeta}>速度 {editedVideo.selectedPlaybackSpeed}x / 位置 {Math.round(editedVideo.currentPositionMillis / 1000)}秒 / 線 {editedVideo.drawnLines.length}本</Text>
+          <Text style={styles.editedMeta}>再生速度 {editedVideo.selectedPlaybackSpeed}x・{Math.round(editedVideo.currentPositionMillis / 1000)}秒地点・補助線 {editedVideo.drawnLines.length}本</Text>
         </View>
       ) : null}
       <View style={styles.card}><Text style={styles.cardTitle}>スイング評価</Text>{analysisItems.map((item) => <ScoreBar key={item.key} label={item.label} score={dummyAnalysis[item.key]} comment={item.comment} color={character.color} />)}</View>
@@ -85,6 +85,6 @@ const styles = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg, borderWidth: 1, padding: spacing.lg },
   cardTitle: { color: colors.text, fontSize: 17, fontWeight: '900', marginBottom: spacing.md },
   comment: { color: colors.text, fontSize: 14, fontWeight: '700', lineHeight: 23, marginBottom: spacing.xs },
-  videoPreview: { backgroundColor: '#111827', borderRadius: radius.md, height: 260, overflow: 'hidden' },
+  videoPreview: { backgroundColor: '#111827', borderRadius: radius.md, height: 310, overflow: 'hidden' },
   editedMeta: { color: colors.muted, fontSize: 12, fontWeight: '800', marginTop: spacing.sm, textAlign: 'center' },
 });
