@@ -1,5 +1,5 @@
 import { NavigatorScreenParams } from '@react-navigation/native';
-import { CameraAngle } from './swing';
+import { CameraAngle, EditedSwingVideo } from './swing';
 
 export type TabParamList = {
   Home: undefined;
@@ -14,8 +14,8 @@ export type RootStackParamList = {
   Onboarding: undefined;
   CharacterSelect: undefined;
   MainTabs: NavigatorScreenParams<TabParamList> | undefined;
-  AnalysisLoading: { videoUri?: string; club: string; cameraAngle: CameraAngle };
-  AnalysisResult: { videoUri?: string; club: string; cameraAngle: CameraAngle };
+  AnalysisLoading: { videoUri?: string; club: string; cameraAngle: CameraAngle; editedVideo?: EditedSwingVideo };
+  AnalysisResult: { videoUri?: string; club: string; cameraAngle: CameraAngle; editedVideo?: EditedSwingVideo };
   VideoAnalysisPlayer: { videoUri?: string; club: string; cameraAngle: CameraAngle };
   BestCompare: { currentVideoUri?: string } | undefined;
 };

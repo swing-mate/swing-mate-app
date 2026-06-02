@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CharacterId } from '../types/character';
-import { SwingHistory } from '../types/swing';
+import { EditedSwingVideo, SwingHistory } from '../types/swing';
 import { isCharacterId } from '../data/characters';
 
 const keys = {
@@ -8,6 +8,7 @@ const keys = {
   selectedCharacterId: 'selectedCharacterId',
   swingHistory: 'swingHistory',
   bestSwingId: 'bestSwingId',
+  latestEditedSwingVideo: 'latestEditedSwingVideo',
 };
 
 export const storageService = {
@@ -58,8 +59,15 @@ export const storageService = {
     const bestId = await storageService.getBestSwingId();
     return history.find((item) => item.id === bestId) ?? history.find((item) => item.isBestSwing) ?? null;
   },
+  async setLatestEditedSwingVideo(value: EditedSwingVideo): Promise<void> {
+    await AsyncStorage.setItem(keys.latestEditedSwingVideo, JSON.stringify(value));
+  },
+  async getLatestEditedSwingVideo(): Promise<EditedSwingVideo | null> {
+    const raw = await AsyncStorage.getItem(keys.latestEditedSwingVideo);
+    return raw ? (JSON.parse(raw) as EditedSwingVideo) : null;
+  },
   async clearPracticeData(): Promise<void> {
-    await AsyncStorage.multiRemove([keys.swingHistory, keys.bestSwingId]);
+    await AsyncStorage.multiRemove([keys.swingHistory, keys.bestSwingId, keys.latestEditedSwingVideo]);
   },
   async logout(): Promise<void> {
     await storageService.setIsLoggedIn(false);

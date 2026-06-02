@@ -5,9 +5,11 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Svg, { Line } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DUMMY_VIDEO_URI } from '../services/analysisService';
+import { storageService } from '../services/storageService';
 import { colors } from '../theme/colors';
 import { radius, spacing } from '../theme/spacing';
 import { RootStackParamList } from '../types/navigation';
+import { EditedSwingVideo, VideoDisplaySize } from '../types/swing';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'VideoAnalysisPlayer'>;
 type Point = { x: number; y: number };
@@ -46,6 +48,8 @@ export function VideoAnalysisPlayerScreen({ navigation, route }: Props) {
   const [guideLines, setGuideLines] = useState<GuideLine[]>([]);
   const [previewLine, setPreviewLine] = useState<GuideLine | null>(null);
   const [seekWidth, setSeekWidth] = useState(1);
+  const [videoDisplaySize, setVideoDisplaySize] = useState<VideoDisplaySize>({ height: 1, width: 1 });
+  const [videoNaturalSize, setVideoNaturalSize] = useState<VideoDisplaySize | undefined>();
   const activeStartRef = useRef<Point | null>(null);
   const previewLineRef = useRef<GuideLine | null>(null);
   const videoUri = route.params.videoUri || DUMMY_VIDEO_URI;
@@ -128,6 +132,27 @@ export function VideoAnalysisPlayerScreen({ navigation, route }: Props) {
 
   const handleSeekLayout = (event: LayoutChangeEvent) => setSeekWidth(event.nativeEvent.layout.width || 1);
 
+  const saveEditedVideo = async () => {
+    const editedVideo: EditedSwingVideo = {
+      videoUri,
+      drawnLines: guideLines.map((line) => ({
+        color: colors.pink,
+        endX: line.end.x,
+        endY: line.end.y,
+        startX: line.start.x,
+        startY: line.start.y,
+        strokeWidth: 3,
+      })),
+      videoDisplaySize,
+      videoNaturalSize,
+      selectedPlaybackSpeed: speed,
+      currentPositionMillis: positionMillis,
+      updatedAt: new Date().toISOString(),
+    };
+    await storageService.setLatestEditedSwingVideo(editedVideo);
+    navigation.replace('AnalysisLoading', { videoUri, club: route.params.club, cameraAngle: route.params.cameraAngle, editedVideo });
+  };
+
   return (
     <View style={styles.container}>
       <View style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]}>
@@ -136,7 +161,7 @@ export function VideoAnalysisPlayerScreen({ navigation, route }: Props) {
         <Pressable onPress={clearGuideLines} style={styles.topButton}><Text style={styles.topButtonText}>クリア</Text></Pressable>
       </View>
 
-      <View style={styles.videoWrap}>
+      <View style={styles.videoWrap} onLayout={(event) => setVideoDisplaySize({ height: event.nativeEvent.layout.height || 1, width: event.nativeEvent.layout.width || 1 })}>
         <Video
           ref={videoRef}
           source={{ uri: videoUri }}
@@ -156,6 +181,9 @@ export function VideoAnalysisPlayerScreen({ navigation, route }: Props) {
             setFinished(false);
             setPositionMillis(status.positionMillis || 0);
             setDurationMillis(status.durationMillis || 1);
+            if (status.naturalSize?.width && status.naturalSize?.height) {
+              setVideoNaturalSize({ height: status.naturalSize.height, width: status.naturalSize.width });
+            }
           }}
         />
         <View pointerEvents={drawingEnabled ? 'auto' : 'none'} style={StyleSheet.absoluteFill} {...panResponder.panHandlers}>
@@ -181,7 +209,7 @@ export function VideoAnalysisPlayerScreen({ navigation, route }: Props) {
             <Text style={[styles.speedText, speed === option && styles.speedTextActive]}>{option.toFixed(option === 1 || option === 2 ? 1 : 2)}x</Text>
           </Pressable>
         ))}</View>
-        <Pressable onPress={() => navigation.replace('AnalysisLoading', { videoUri, club: route.params.club, cameraAngle: route.params.cameraAngle })} style={styles.analysisButton}>
+        <Pressable onPress={saveEditedVideo} style={styles.analysisButton}>
           <Text style={styles.analysisButtonText}>この動画を分析する</Text>
         </Pressable>
       </View>
