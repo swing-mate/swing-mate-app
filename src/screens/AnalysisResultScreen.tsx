@@ -11,6 +11,7 @@ import { ScoreCard } from '../components/ScoreCard';
 import { analysisItems, dummyAnalysis } from '../data/dummyAnalysis';
 import { getCharacterById } from '../data/characters';
 import { analysisService } from '../services/analysisService';
+import { caddieGrowthService } from '../services/caddieGrowthService';
 import { storageService } from '../services/storageService';
 import { colors } from '../theme/colors';
 import { radius, spacing } from '../theme/spacing';
@@ -65,13 +66,15 @@ export function AnalysisResultScreen({ navigation, route, selectedCharacterId }:
     const swing = { ...analysisService.createSwingHistory({ videoUri: route.params.videoUri, club: route.params.club, cameraAngle: route.params.cameraAngle, selectedCharacterId: character.id }), editedVideo: editedVideo ?? undefined };
     const saved = await storageService.addSwing(swing);
     setSavedId(saved.id);
-    Alert.alert('保存しました', saved.isBestSwing ? '今回のスイングがベストに設定されました。' : '履歴に保存しました。');
+    const growthResult = saved.isBestSwing ? await caddieGrowthService.addExp(character.id, 'bestSwingUpdated') : null;
+    Alert.alert('保存しました', saved.isBestSwing ? `今回のスイングがベストに設定されました。${growthResult?.outfitUnlocked ? '\n衣装解放！' : ''}` : '履歴に保存しました。');
   };
   const setBest = async () => {
     const id = savedId;
     if (!id) { Alert.alert('先に保存してください', '履歴に保存するとベスト設定できます。'); return; }
     await storageService.setBestSwingId(id);
-    Alert.alert('ベストに設定しました');
+    const growthResult = await caddieGrowthService.addExp(character.id, 'bestSwingUpdated');
+    Alert.alert('ベストに設定しました', growthResult.outfitUnlocked ? '衣装解放！マイページで確認できます。' : undefined);
   };
   const onPreviewLayout = (event: LayoutChangeEvent) => setPreviewSize({ height: event.nativeEvent.layout.height || 1, width: event.nativeEvent.layout.width || 1 });
   const videoAspectRatio = getVideoAspectRatio(editedVideo);

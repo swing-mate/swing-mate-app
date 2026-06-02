@@ -3,6 +3,7 @@ import { Animated, StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { CaddieAvatar, CaddieMessage } from '../components/CaddieMessage';
 import { getCharacterById } from '../data/characters';
+import { caddieGrowthService } from '../services/caddieGrowthService';
 import { colors } from '../theme/colors';
 import { radius, spacing } from '../theme/spacing';
 import { CharacterId } from '../types/character';
@@ -18,9 +19,11 @@ export function AnalysisLoadingScreen({ navigation, route, selectedCharacterId }
   useEffect(() => {
     Animated.loop(Animated.timing(spin, { toValue: 1, duration: 1100, useNativeDriver: true })).start();
     const interval = setInterval(() => setProgress((value) => Math.min(100, value + 10)), 180);
-    const timeout = setTimeout(() => navigation.replace('AnalysisResult', route.params), 2000);
+    const timeout = setTimeout(() => {
+      caddieGrowthService.addExp(character.id, 'analysisComplete').finally(() => navigation.replace('AnalysisResult', route.params));
+    }, 2000);
     return () => { clearInterval(interval); clearTimeout(timeout); };
-  }, [navigation, route.params, spin]);
+  }, [character.id, navigation, route.params, spin]);
 
   const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
 

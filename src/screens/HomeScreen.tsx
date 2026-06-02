@@ -7,21 +7,18 @@ import { CompositeScreenProps } from '@react-navigation/native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { PastelButton } from '../components/PastelButton';
+import { storageService } from '../services/storageService';
 import { getCharacterById } from '../data/characters';
+import { getCaddieGrowthProgress, getCaddieOutfitImageSource } from '../data/caddieGrowth';
 import { colors } from '../theme/colors';
 import { radius, spacing } from '../theme/spacing';
 import { CharacterId } from '../types/character';
+import { CaddieGrowthProgress } from '../types/caddieGrowth';
 import { RootStackParamList, TabParamList } from '../types/navigation';
 
 declare const require: (path: string) => ImageSourcePropType;
 
 type Props = CompositeScreenProps<BottomTabScreenProps<TabParamList, 'Home'>, NativeStackScreenProps<RootStackParamList>> & { selectedCharacterId: CharacterId | null };
-
-const characterImageSources: Record<CharacterId, ImageSourcePropType> = {
-  mimi: require('../../assets/characters/mimi.png'),
-  rina: require('../../assets/characters/rina.png'),
-  yuna: require('../../assets/characters/yuna.png'),
-};
 
 const homeBackgroundImage = require('../../assets/backgrounds/home_golf_clubhouse.png');
 
@@ -32,8 +29,9 @@ export function HomeScreen({ navigation, selectedCharacterId }: Props) {
   const bounceScale = useSharedValue(1);
   const [messageIndex, setMessageIndex] = useState(0);
   const [imageLoadFailed, setImageLoadFailed] = useState(false);
+  const [growth, setGrowth] = useState<CaddieGrowthProgress>(() => getCaddieGrowthProgress(character.id, 0));
   const messages = [character.homeComment, character.comment, character.tone, character.compareComment];
-  const characterImageSource = characterImageSources[character.id];
+  const characterImageSource = getCaddieOutfitImageSource(character.id, growth.level);
 
   useEffect(() => {
     floatY.value = withRepeat(
@@ -53,9 +51,17 @@ export function HomeScreen({ navigation, selectedCharacterId }: Props) {
   }));
 
   useEffect(() => {
+    let mounted = true;
+    storageService.getCaddieExp(character.id).then((totalExp) => {
+      if (mounted) setGrowth(getCaddieGrowthProgress(character.id, totalExp));
+    });
+    return () => { mounted = false; };
+  }, [character.id]);
+
+  useEffect(() => {
     setMessageIndex(0);
     setImageLoadFailed(false);
-  }, [selectedCharacterId]);
+  }, [selectedCharacterId, growth.currentOutfitLevel]);
 
   const handleCharacterPress = () => {
     setMessageIndex((current: number) => (current + 1) % messages.length);
@@ -91,7 +97,10 @@ export function HomeScreen({ navigation, selectedCharacterId }: Props) {
     <ScrollView contentContainerStyle={styles.container}>
       <ImageBackground source={homeBackgroundImage} style={styles.scene} imageStyle={styles.sceneImage} resizeMode="cover">
         <View style={[styles.speechBubble, { backgroundColor: character.lightColor, borderColor: character.color, top: insets.top + spacing.md }]}>
-          <Text style={[styles.speechName, { color: character.color }]}>{character.name}</Text>
+          <View style={styles.speechHeader}>
+            <Text style={[styles.speechName, { color: character.color }]}>{character.name}</Text>
+            <Text style={[styles.levelBadge, { color: character.color }]}>Lv.{growth.level}</Text>
+          </View>
           <Text style={styles.speechText}>{messages[messageIndex]}</Text>
         </View>
 
@@ -125,7 +134,9 @@ const styles = StyleSheet.create({
   scene: { backgroundColor: colors.mintLight, height: 640, overflow: 'hidden', width: '100%' },
   sceneImage: { height: '100%', width: '100%' },
   speechBubble: { borderRadius: radius.lg, borderWidth: 2, left: spacing.lg, padding: spacing.sm, position: 'absolute', right: spacing.lg, top: spacing.lg, zIndex: 4 },
-  speechName: { fontSize: 14, fontWeight: '900', marginBottom: 2 },
+  speechHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 },
+  speechName: { fontSize: 14, fontWeight: '900' },
+  levelBadge: { backgroundColor: colors.surface, borderRadius: radius.pill, fontSize: 12, fontWeight: '900', overflow: 'hidden', paddingHorizontal: spacing.sm, paddingVertical: 2 },
   speechText: { color: colors.text, fontSize: 14, fontWeight: '800', lineHeight: 20 },
   characterPressable: { alignItems: 'center', bottom: -8, left: 0, position: 'absolute', right: 0, zIndex: 3 },
   standee: { alignItems: 'center', width: '100%' },

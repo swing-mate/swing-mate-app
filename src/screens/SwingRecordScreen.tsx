@@ -7,7 +7,9 @@ import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PastelButton } from '../components/PastelButton';
+import { getCharacterById } from '../data/characters';
 import { DUMMY_VIDEO_URI } from '../services/analysisService';
+import { caddieGrowthService } from '../services/caddieGrowthService';
 import { colors } from '../theme/colors';
 import { radius, spacing } from '../theme/spacing';
 import { CharacterId } from '../types/character';
@@ -19,8 +21,9 @@ type Props = CompositeScreenProps<BottomTabScreenProps<TabParamList, 'Record'>, 
 const clubs = ['ドライバー', 'ウッド', 'ユーティリティ', 'アイアン', 'ウェッジ', 'パター'];
 const visibleTabBarStyle = { backgroundColor: colors.surface, borderTopColor: colors.border, height: 70, paddingBottom: 10, paddingTop: 8 };
 
-export function SwingRecordScreen({ navigation }: Props) {
+export function SwingRecordScreen({ navigation, selectedCharacterId }: Props) {
   const insets = useSafeAreaInsets();
+  const character = getCharacterById(selectedCharacterId);
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<any>(null);
   const [cameraMode, setCameraMode] = useState(false);
@@ -74,6 +77,7 @@ export function SwingRecordScreen({ navigation }: Props) {
     setRecording(true);
     try {
       const video = await cameraRef.current.recordAsync({ maxDuration: 20 });
+      await caddieGrowthService.addExp(character.id, 'recordingComplete');
       goPlayer(video?.uri || DUMMY_VIDEO_URI);
     } catch {
       goPlayer(DUMMY_VIDEO_URI);
