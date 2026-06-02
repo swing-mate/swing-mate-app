@@ -207,7 +207,7 @@ export function VideoComparePlayer({ currentUri = DUMMY_VIDEO_URI, bestUri = DUM
 
   return (
     <View style={styles.card}>
-      <Text style={styles.description}>過去のベストを薄く重ねて、フォームの違いを確認しよう</Text>
+      <Text style={styles.description}>過去のベストを基準に、現在のスイングを重ねて確認しよう</Text>
       <View style={styles.segment}>
         <Pressable onPress={() => setMode('sideBySide')} style={[styles.segmentButton, mode === 'sideBySide' && styles.active]}>
           <Text style={[styles.segmentText, mode === 'sideBySide' && styles.activeText]}>横並び比較</Text>
@@ -228,10 +228,10 @@ export function VideoComparePlayer({ currentUri = DUMMY_VIDEO_URI, bestUri = DUM
       ) : (
         <>
           <View style={styles.overlayBox} onLayout={(event: LayoutChangeEvent) => { const layout = { height: event.nativeEvent.layout.height || 1, width: event.nativeEvent.layout.width || 1 }; setCurrentLayout(layout); setBestLayout(layout); }}>
-            <View style={StyleSheet.absoluteFill}>{renderVideoLayer(bestUri, '過去のベスト（半透明）', true, bestRef, 'best')}</View>
-            {renderGuideLines(bestEditedVideo, bestLayout, true)}
-            <View style={[StyleSheet.absoluteFill, { transform: [{ translateX: overlayAdjust.x }, { translateY: overlayAdjust.y }, { scale: overlayAdjust.scale }] }]}>
-              {renderVideoLayer(currentUri, '現在のスイング', false, currentRef, 'current')}
+            <View style={StyleSheet.absoluteFill}>{renderVideoLayer(bestUri, '過去のベスト', false, bestRef, 'best')}</View>
+            {renderGuideLines(bestEditedVideo, bestLayout)}
+            <View style={[StyleSheet.absoluteFill, { opacity, transform: [{ translateX: overlayAdjust.x }, { translateY: overlayAdjust.y }, { scale: overlayAdjust.scale }] }]}>
+              {renderVideoLayer(currentUri, '現在のスイング（半透明）', false, currentRef, 'current')}
               {renderGuideLines(currentEditedVideo, currentLayout)}
             </View>
           </View>
@@ -257,7 +257,7 @@ export function VideoComparePlayer({ currentUri = DUMMY_VIDEO_URI, bestUri = DUM
         <View style={[styles.seekThumb, { left: `${Math.min(98, getSeekPercent(displayPosition, playableDuration))}%` }]} />
       </Pressable>
 
-      <Text style={styles.controlLabel}>透明度</Text>
+      <Text style={styles.controlLabel}>{mode === 'overlay' ? '現在動画の透明度' : '透明度'}</Text>
       <View style={styles.options}>{opacityOptions.map((option) => (
         <Pressable key={option} onPress={() => setOpacity(option)} style={[styles.chip, opacity === option && styles.chipActive]}>
           <Text style={[styles.chipText, opacity === option && styles.chipActiveText]}>{Math.round(option * 100)}%</Text>
