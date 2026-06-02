@@ -46,37 +46,52 @@ export function VideoAnalysisPlayerScreen({ navigation, route }: Props) {
   const [guideLines, setGuideLines] = useState<GuideLine[]>([]);
   const [previewLine, setPreviewLine] = useState<GuideLine | null>(null);
   const [seekWidth, setSeekWidth] = useState(1);
+  const activeStartRef = useRef<Point | null>(null);
+  const previewLineRef = useRef<GuideLine | null>(null);
   const videoUri = route.params.videoUri || DUMMY_VIDEO_URI;
 
+  const getEventPoint = (event?: GestureResponderEvent): Point | null => {
+    const nativeEvent = event?.nativeEvent;
+    if (!nativeEvent) return null;
+    return { x: nativeEvent.locationX, y: nativeEvent.locationY };
+  };
+
+  const setPreviewGuideLine = (line: GuideLine | null) => {
+    previewLineRef.current = line;
+    setPreviewLine(line);
+  };
+
   const updatePreviewLine = (event: GestureResponderEvent) => {
-    const { locationX, locationY } = event.nativeEvent;
-    setPreviewLine((current) => {
-      if (!current) return null;
-      return snapLine(current.start, { x: locationX, y: locationY });
-    });
+    const point = getEventPoint(event);
+    const start = activeStartRef.current;
+    if (!point || !start) return;
+    setPreviewGuideLine(snapLine(start, point));
   };
 
   const finishGuideLine = (event?: GestureResponderEvent) => {
-    setPreviewLine((current) => {
-      if (!current) return null;
-      const completedLine = event ? snapLine(current.start, { x: event.nativeEvent.locationX, y: event.nativeEvent.locationY }) : current;
-      setGuideLines((lines) => [...lines, completedLine]);
-      return null;
-    });
+    const point = getEventPoint(event);
+    const current = previewLineRef.current;
+    if (!current) return;
+    const completedLine = point ? snapLine(current.start, point) : current;
+    setGuideLines((lines) => [...lines, completedLine]);
+    activeStartRef.current = null;
+    setPreviewGuideLine(null);
   };
 
   const clearGuideLines = () => {
     setGuideLines([]);
-    setPreviewLine(null);
+    activeStartRef.current = null;
+    setPreviewGuideLine(null);
   };
 
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => drawingEnabled,
     onMoveShouldSetPanResponder: () => drawingEnabled,
     onPanResponderGrant: (event: GestureResponderEvent) => {
-      const { locationX, locationY } = event.nativeEvent;
-      const start = { x: locationX, y: locationY };
-      setPreviewLine({ id: `${Date.now()}`, start, end: start });
+      const start = getEventPoint(event);
+      if (!start) return;
+      activeStartRef.current = start;
+      setPreviewGuideLine({ id: `${Date.now()}`, start, end: start });
     },
     onPanResponderMove: updatePreviewLine,
     onPanResponderRelease: finishGuideLine,
