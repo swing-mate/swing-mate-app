@@ -20,6 +20,31 @@ import { EditedSwingVideo, VideoDisplaySize } from '../types/swing';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AnalysisResult'> & { selectedCharacterId: CharacterId | null };
 
+const getVideoAspectRatio = (editedVideo: EditedSwingVideo | null) => {
+  const size = editedVideo?.videoNaturalSize ?? editedVideo?.videoDisplaySize;
+  if (!size?.width || !size.height) return 9 / 16;
+  return size.width / size.height;
+};
+
+const getContainVideoRect = (displaySize: VideoDisplaySize, naturalSize?: VideoDisplaySize) => {
+  if (!naturalSize?.width || !naturalSize.height || !displaySize.width || !displaySize.height) {
+    return { x: 0, y: 0, width: Math.max(1, displaySize.width), height: Math.max(1, displaySize.height) };
+  }
+
+  const displayAspectRatio = displaySize.width / displaySize.height;
+  const videoAspectRatio = naturalSize.width / naturalSize.height;
+
+  if (displayAspectRatio > videoAspectRatio) {
+    const height = displaySize.height;
+    const width = height * videoAspectRatio;
+    return { x: (displaySize.width - width) / 2, y: 0, width, height };
+  }
+
+  const width = displaySize.width;
+  const height = width / videoAspectRatio;
+  return { x: 0, y: (displaySize.height - height) / 2, width, height };
+};
+
 export function AnalysisResultScreen({ navigation, route, selectedCharacterId }: Props) {
   const character = getCharacterById(selectedCharacterId);
   const insets = useSafeAreaInsets();
@@ -49,6 +74,8 @@ export function AnalysisResultScreen({ navigation, route, selectedCharacterId }:
     Alert.alert('ベストに設定しました');
   };
   const onPreviewLayout = (event: LayoutChangeEvent) => setPreviewSize({ height: event.nativeEvent.layout.height || 1, width: event.nativeEvent.layout.width || 1 });
+  const videoAspectRatio = getVideoAspectRatio(editedVideo);
+  const sourceVideoRect = editedVideo ? getContainVideoRect(editedVideo.videoDisplaySize, editedVideo.videoNaturalSize) : { height: 1, width: 1, x: 0, y: 0 };
 
   return (
     <ScrollView contentContainerStyle={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
@@ -56,13 +83,17 @@ export function AnalysisResultScreen({ navigation, route, selectedCharacterId }:
       {editedVideo ? (
         <View style={styles.card}>
           <Text style={styles.cardTitle}>補助線つき動画</Text>
-          <View style={styles.videoPreview} onLayout={onPreviewLayout}>
-            <Video source={{ uri: editedVideo.videoUri }} resizeMode={ResizeMode.COVER} shouldPlay={false} style={StyleSheet.absoluteFill} />
+          <View style={[styles.videoPreview, { aspectRatio: videoAspectRatio }]} onLayout={onPreviewLayout}>
+            <Video source={{ uri: editedVideo.videoUri }} resizeMode={ResizeMode.CONTAIN} shouldPlay={false} style={StyleSheet.absoluteFill} />
             <Svg height="100%" width="100%" style={StyleSheet.absoluteFill}>
               {editedVideo.drawnLines.map((line, index) => {
-                const scaleX = previewSize.width / Math.max(1, editedVideo.videoDisplaySize.width);
-                const scaleY = previewSize.height / Math.max(1, editedVideo.videoDisplaySize.height);
-                return <Line key={`${line.startX}-${line.startY}-${index}`} x1={line.startX * scaleX} y1={line.startY * scaleY} x2={line.endX * scaleX} y2={line.endY * scaleY} stroke={line.color} strokeLinecap="round" strokeWidth={line.strokeWidth} />;
+                const scaleX = previewSize.width / Math.max(1, sourceVideoRect.width);
+                const scaleY = previewSize.height / Math.max(1, sourceVideoRect.height);
+                const x1 = (line.startX - sourceVideoRect.x) * scaleX;
+                const y1 = (line.startY - sourceVideoRect.y) * scaleY;
+                const x2 = (line.endX - sourceVideoRect.x) * scaleX;
+                const y2 = (line.endY - sourceVideoRect.y) * scaleY;
+                return <Line key={`${line.startX}-${line.startY}-${index}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke={line.color} strokeLinecap="round" strokeWidth={line.strokeWidth} />;
               })}
             </Svg>
           </View>
@@ -85,6 +116,6 @@ const styles = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg, borderWidth: 1, padding: spacing.lg },
   cardTitle: { color: colors.text, fontSize: 17, fontWeight: '900', marginBottom: spacing.md },
   comment: { color: colors.text, fontSize: 14, fontWeight: '700', lineHeight: 23, marginBottom: spacing.xs },
-  videoPreview: { backgroundColor: colors.pinkLight, borderRadius: radius.md, height: 310, overflow: 'hidden' },
+  videoPreview: { backgroundColor: colors.pinkLight, borderRadius: radius.md, overflow: 'hidden', width: '100%' },
   editedMeta: { color: colors.muted, fontSize: 12, fontWeight: '800', marginTop: spacing.sm, textAlign: 'center' },
 });
