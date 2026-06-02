@@ -57,7 +57,7 @@ export function AnalysisResultScreen({ navigation, route, selectedCharacterId }:
         <View style={styles.card}>
           <Text style={styles.cardTitle}>補助線つき動画</Text>
           <View style={styles.videoPreview} onLayout={onPreviewLayout}>
-            <Video source={{ uri: editedVideo.videoUri }} resizeMode={ResizeMode.CONTAIN} shouldPlay={false} style={StyleSheet.absoluteFill} />
+            <Video source={{ uri: editedVideo.videoUri }} resizeMode={ResizeMode.COVER} shouldPlay={false} style={StyleSheet.absoluteFill} />
             <Svg height="100%" width="100%" style={StyleSheet.absoluteFill}>
               {editedVideo.drawnLines.map((line, index) => {
                 const scaleX = previewSize.width / Math.max(1, editedVideo.videoDisplaySize.width);
@@ -85,6 +85,6 @@ const styles = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.lg, borderWidth: 1, padding: spacing.lg },
   cardTitle: { color: colors.text, fontSize: 17, fontWeight: '900', marginBottom: spacing.md },
   comment: { color: colors.text, fontSize: 14, fontWeight: '700', lineHeight: 23, marginBottom: spacing.xs },
-  videoPreview: { backgroundColor: '#111827', borderRadius: radius.md, height: 310, overflow: 'hidden' },
+  videoPreview: { backgroundColor: colors.pinkLight, borderRadius: radius.md, height: 310, overflow: 'hidden' },
   editedMeta: { color: colors.muted, fontSize: 12, fontWeight: '800', marginTop: spacing.sm, textAlign: 'center' },
 });
