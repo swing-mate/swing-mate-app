@@ -62,7 +62,7 @@ export function AnalysisResultScreen({ navigation, route, selectedCharacterId }:
   }, [route.params.editedVideo, route.params.videoUri]);
 
   const saveHistory = async () => {
-    const swing = analysisService.createSwingHistory({ videoUri: route.params.videoUri, club: route.params.club, cameraAngle: route.params.cameraAngle, selectedCharacterId: character.id });
+    const swing = { ...analysisService.createSwingHistory({ videoUri: route.params.videoUri, club: route.params.club, cameraAngle: route.params.cameraAngle, selectedCharacterId: character.id }), editedVideo: editedVideo ?? undefined };
     const saved = await storageService.addSwing(swing);
     setSavedId(saved.id);
     Alert.alert('保存しました', saved.isBestSwing ? '今回のスイングがベストに設定されました。' : '履歴に保存しました。');
@@ -104,7 +104,7 @@ export function AnalysisResultScreen({ navigation, route, selectedCharacterId }:
       <CaddieMessage character={character} message={character.resultAdvice} />
       <View style={styles.card}><Text style={styles.cardTitle}>コメント</Text>{dummyAnalysis.comments.map((comment) => <Text key={comment} style={styles.comment}>• {comment}</Text>)}</View>
       <PastelButton label="詳しい分析を見る" onPress={() => Alert.alert('準備中', '詳細分析は次のMVPで追加予定です。')} />
-      <PastelButton label="ベストスイングと比較" onPress={() => navigation.navigate('BestCompare', { currentVideoUri: route.params.videoUri })} variant="secondary" />
+      <PastelButton label="ベストスイングと比較" onPress={() => navigation.navigate('BestCompare', { currentVideoUri: route.params.videoUri || editedVideo?.videoUri, currentEditedVideo: editedVideo ?? undefined })} variant="secondary" />
       <PastelButton label={savedId ? '保存済み' : '履歴に保存'} onPress={saveHistory} variant="ghost" disabled={!!savedId} />
       <PastelButton label="ベストに設定" onPress={setBest} variant="secondary" />
     </ScrollView>

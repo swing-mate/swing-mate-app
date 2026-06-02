@@ -12,6 +12,7 @@ export type SwingHistory = {
   selectedCharacterId: CharacterId;
   isBestSwing: boolean;
   notes?: string;
+  editedVideo?: EditedSwingVideo;
 };
 
 

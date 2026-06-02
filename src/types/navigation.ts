@@ -17,5 +17,5 @@ export type RootStackParamList = {
   AnalysisLoading: { videoUri?: string; club: string; cameraAngle: CameraAngle; editedVideo?: EditedSwingVideo };
   AnalysisResult: { videoUri?: string; club: string; cameraAngle: CameraAngle; editedVideo?: EditedSwingVideo };
   VideoAnalysisPlayer: { videoUri?: string; club: string; cameraAngle: CameraAngle };
-  BestCompare: { currentVideoUri?: string } | undefined;
+  BestCompare: { currentVideoUri?: string; currentEditedVideo?: EditedSwingVideo } | undefined;
 };

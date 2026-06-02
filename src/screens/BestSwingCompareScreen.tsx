@@ -12,32 +12,41 @@ import { colors } from '../theme/colors';
 import { radius, spacing } from '../theme/spacing';
 import { CharacterId } from '../types/character';
 import { RootStackParamList } from '../types/navigation';
-import { SwingHistory } from '../types/swing';
+import { EditedSwingVideo, SwingHistory } from '../types/swing';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'BestCompare'> & { selectedCharacterId: CharacterId | null };
 
 export function BestSwingCompareScreen({ navigation, route, selectedCharacterId }: Props) {
   const character = getCharacterById(selectedCharacterId);
   const [bestSwing, setBestSwing] = useState<SwingHistory | null>(null);
+  const [latestEditedVideo, setLatestEditedVideo] = useState<EditedSwingVideo | null>(null);
 
   useFocusEffect(useCallback(() => {
     let mounted = true;
-    storageService.getBestSwing().then((best) => { if (mounted) setBestSwing(best); });
+    Promise.all([storageService.getBestSwing(), storageService.getLatestEditedSwingVideo()]).then(([best, latest]) => {
+      if (!mounted) return;
+      setBestSwing(best);
+      setLatestEditedVideo(latest);
+    });
     return () => { mounted = false; };
   }, []));
+
+  const currentUri = route.params?.currentVideoUri || DUMMY_VIDEO_URI;
+  const currentEditedVideo = route.params?.currentEditedVideo ?? (latestEditedVideo?.videoUri === currentUri ? latestEditedVideo : null);
+  const bestEditedVideo = bestSwing?.editedVideo ?? (latestEditedVideo?.videoUri === bestSwing?.videoUri ? latestEditedVideo : null);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>ベストスイング比較</Text>
       <CaddieMessage character={character} message={character.compareComment} compact />
       {bestSwing ? (
-        <VideoComparePlayer currentUri={route.params?.currentVideoUri || DUMMY_VIDEO_URI} bestUri={bestSwing.videoUri} />
+        <VideoComparePlayer currentUri={currentUri} bestUri={bestSwing.videoUri} currentEditedVideo={currentEditedVideo} bestEditedVideo={bestEditedVideo} />
       ) : (
         <View style={styles.emptyCard}>
           <Text style={styles.emptyTitle}>まだベストスイングがありません</Text>
           <Text style={styles.emptyText}>まずはスイングを記録しましょう</Text>
           <PastelButton label="スイングを記録する" onPress={() => navigation.navigate('MainTabs', { screen: 'Record' })} />
-          <VideoComparePlayer currentUri={route.params?.currentVideoUri || DUMMY_VIDEO_URI} bestUri={DUMMY_VIDEO_URI} />
+          <VideoComparePlayer currentUri={currentUri} bestUri={DUMMY_VIDEO_URI} currentEditedVideo={currentEditedVideo} />
         </View>
       )}
     </ScrollView>

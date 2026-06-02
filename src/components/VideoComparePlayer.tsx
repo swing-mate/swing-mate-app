@@ -1,25 +1,71 @@
 import React, { useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ResizeMode, Video } from 'expo-av';
+import Svg, { Line } from 'react-native-svg';
 import { colors } from '../theme/colors';
 import { radius, spacing } from '../theme/spacing';
 import { DUMMY_VIDEO_URI } from '../services/analysisService';
+import { EditedSwingVideo, VideoDisplaySize } from '../types/swing';
 
 type Props = {
   currentUri?: string;
   bestUri?: string;
+  currentEditedVideo?: EditedSwingVideo | null;
+  bestEditedVideo?: EditedSwingVideo | null;
 };
 
 type Mode = 'sideBySide' | 'overlay';
+type VideoRect = VideoDisplaySize & { x: number; y: number };
 
 const opacityOptions = [0, 0.25, 0.5, 0.75];
 const speedOptions = [0.25, 0.5, 1.0];
 
-export function VideoComparePlayer({ currentUri = DUMMY_VIDEO_URI, bestUri = DUMMY_VIDEO_URI }: Props) {
+const getContainVideoRect = (displaySize: VideoDisplaySize, naturalSize?: VideoDisplaySize): VideoRect => {
+  if (!naturalSize?.width || !naturalSize.height || !displaySize.width || !displaySize.height) {
+    return { x: 0, y: 0, width: Math.max(1, displaySize.width), height: Math.max(1, displaySize.height) };
+  }
+
+  const displayAspectRatio = displaySize.width / displaySize.height;
+  const videoAspectRatio = naturalSize.width / naturalSize.height;
+
+  if (displayAspectRatio > videoAspectRatio) {
+    const height = displaySize.height;
+    const width = height * videoAspectRatio;
+    return { x: (displaySize.width - width) / 2, y: 0, width, height };
+  }
+
+  const width = displaySize.width;
+  const height = width / videoAspectRatio;
+  return { x: 0, y: (displaySize.height - height) / 2, width, height };
+};
+
+const getCoverVideoRect = (displaySize: VideoDisplaySize, naturalSize?: VideoDisplaySize): VideoRect => {
+  if (!naturalSize?.width || !naturalSize.height || !displaySize.width || !displaySize.height) {
+    return { x: 0, y: 0, width: Math.max(1, displaySize.width), height: Math.max(1, displaySize.height) };
+  }
+
+  const displayAspectRatio = displaySize.width / displaySize.height;
+  const videoAspectRatio = naturalSize.width / naturalSize.height;
+
+  if (displayAspectRatio > videoAspectRatio) {
+    const width = displaySize.width;
+    const height = width / videoAspectRatio;
+    return { x: 0, y: (displaySize.height - height) / 2, width, height };
+  }
+
+  const height = displaySize.height;
+  const width = height * videoAspectRatio;
+  return { x: (displaySize.width - width) / 2, y: 0, width, height };
+};
+
+export function VideoComparePlayer({ currentUri = DUMMY_VIDEO_URI, bestUri = DUMMY_VIDEO_URI, currentEditedVideo, bestEditedVideo }: Props) {
   const [mode, setMode] = useState<Mode>('sideBySide');
   const [opacity, setOpacity] = useState(0.5);
   const [speed, setSpeed] = useState(1.0);
   const [playing, setPlaying] = useState(false);
+  const [guideVisible, setGuideVisible] = useState(true);
+  const [currentLayout, setCurrentLayout] = useState<VideoDisplaySize>({ height: 1, width: 1 });
+  const [bestLayout, setBestLayout] = useState<VideoDisplaySize>({ height: 1, width: 1 });
   const currentRef = useRef<Video>(null);
   const bestRef = useRef<Video>(null);
 
@@ -35,8 +81,36 @@ export function VideoComparePlayer({ currentUri = DUMMY_VIDEO_URI, bestUri = DUM
     setPlaying(true);
   };
 
-  const renderVideo = (uri: string, label: string, faded?: boolean, ref?: React.RefObject<Video>) => (
-    <View style={styles.videoBox}>
+  const renderGuideLines = (editedVideo: EditedSwingVideo | null | undefined, layout: VideoDisplaySize, faded?: boolean) => {
+    if (!guideVisible || !editedVideo?.drawnLines.length) return null;
+
+    const naturalSize = editedVideo.videoNaturalSize ?? editedVideo.videoDisplaySize;
+    const sourceRect = getContainVideoRect(editedVideo.videoDisplaySize, editedVideo.videoNaturalSize);
+    const targetRect = getCoverVideoRect(layout, naturalSize);
+
+    return (
+      <Svg height="100%" style={StyleSheet.absoluteFill} width="100%">
+        {editedVideo.drawnLines.map((line, index) => {
+          const x1 = targetRect.x + ((line.startX - sourceRect.x) / Math.max(1, sourceRect.width)) * targetRect.width;
+          const y1 = targetRect.y + ((line.startY - sourceRect.y) / Math.max(1, sourceRect.height)) * targetRect.height;
+          const x2 = targetRect.x + ((line.endX - sourceRect.x) / Math.max(1, sourceRect.width)) * targetRect.width;
+          const y2 = targetRect.y + ((line.endY - sourceRect.y) / Math.max(1, sourceRect.height)) * targetRect.height;
+          return <Line key={`${line.startX}-${line.startY}-${index}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke={line.color} strokeLinecap="round" strokeOpacity={faded ? opacity : 1} strokeWidth={line.strokeWidth} />;
+        })}
+      </Svg>
+    );
+  };
+
+  const renderVideo = (
+    uri: string,
+    label: string,
+    faded: boolean | undefined,
+    ref: React.RefObject<Video | null>,
+    editedVideo: EditedSwingVideo | null | undefined,
+    layout: VideoDisplaySize,
+    onLayout: (event: LayoutChangeEvent) => void,
+  ) => (
+    <View style={styles.videoBox} onLayout={onLayout}>
       <Video
         ref={ref}
         source={{ uri }}
@@ -49,6 +123,7 @@ export function VideoComparePlayer({ currentUri = DUMMY_VIDEO_URI, bestUri = DUM
         <Text style={styles.videoEmoji}>🏌️‍♀️</Text>
         <Text style={styles.videoLabel}>{label}</Text>
       </View>
+      {renderGuideLines(editedVideo, layout, faded)}
     </View>
   );
 
@@ -63,16 +138,20 @@ export function VideoComparePlayer({ currentUri = DUMMY_VIDEO_URI, bestUri = DUM
           <Text style={[styles.segmentText, mode === 'overlay' && styles.activeText]}>重ね比較</Text>
         </Pressable>
       </View>
+      <Pressable onPress={() => setGuideVisible((current: boolean) => !current)} style={[styles.guideToggle, guideVisible && styles.guideToggleActive]}>
+        <Text style={[styles.guideToggleText, guideVisible && styles.guideToggleTextActive]}>補助線 {guideVisible ? 'ON' : 'OFF'}</Text>
+      </Pressable>
 
       {mode === 'sideBySide' ? (
         <View style={styles.sideBySide}>
-          {renderVideo(currentUri, '現在のスイング', false, currentRef)}
-          {renderVideo(bestUri, '過去のベスト', true, bestRef)}
+          {renderVideo(currentUri, '現在のスイング', false, currentRef, currentEditedVideo, currentLayout, (event) => setCurrentLayout({ height: event.nativeEvent.layout.height || 1, width: event.nativeEvent.layout.width || 1 }))}
+          {renderVideo(bestUri, '過去のベスト', true, bestRef, bestEditedVideo, bestLayout, (event) => setBestLayout({ height: event.nativeEvent.layout.height || 1, width: event.nativeEvent.layout.width || 1 }))}
         </View>
       ) : (
         <View style={styles.overlayBox}>
-          {renderVideo(currentUri, '現在のスイング', false, currentRef)}
-          <View style={StyleSheet.absoluteFill}>{renderVideo(bestUri, '過去のベスト（半透明）', true, bestRef)}</View>
+          {renderVideo(currentUri, '現在のスイング', false, currentRef, undefined, currentLayout, (event) => setCurrentLayout({ height: event.nativeEvent.layout.height || 1, width: event.nativeEvent.layout.width || 1 }))}
+          <View style={StyleSheet.absoluteFill}>{renderVideo(bestUri, '過去のベスト（半透明）', true, bestRef, bestEditedVideo, bestLayout, (event) => setBestLayout({ height: event.nativeEvent.layout.height || 1, width: event.nativeEvent.layout.width || 1 }))}</View>
+          {renderGuideLines(currentEditedVideo, currentLayout)}
         </View>
       )}
 
@@ -133,6 +212,27 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   activeText: {
+    color: colors.surface,
+  },
+  guideToggle: {
+    alignSelf: 'center',
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  guideToggleActive: {
+    backgroundColor: colors.mint,
+    borderColor: colors.mint,
+  },
+  guideToggleText: {
+    color: colors.muted,
+    fontWeight: '900',
+  },
+  guideToggleTextActive: {
     color: colors.surface,
   },
   sideBySide: {
