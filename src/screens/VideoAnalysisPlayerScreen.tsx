@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { LayoutChangeEvent, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
+import { GestureResponderEvent, LayoutChangeEvent, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ResizeMode, Video } from 'expo-av';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import Svg, { Polyline } from 'react-native-svg';
+import Svg, { Line } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DUMMY_VIDEO_URI } from '../services/analysisService';
 import { colors } from '../theme/colors';
@@ -11,9 +11,21 @@ import { RootStackParamList } from '../types/navigation';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'VideoAnalysisPlayer'>;
 type Point = { x: number; y: number };
-type Stroke = { id: string; points: Point[] };
+type GuideLine = { id: string; start: Point; end: Point };
 
 const speedOptions = [0.25, 0.5, 1.0, 2.0];
+
+const snapLine = (start: Point, end: Point): GuideLine => {
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  if (Math.abs(dx) < Math.abs(dy) * 0.25) {
+    return { id: `${Date.now()}`, start, end: { x: start.x, y: end.y } };
+  }
+  if (Math.abs(dy) < Math.abs(dx) * 0.25) {
+    return { id: `${Date.now()}`, start, end: { x: end.x, y: start.y } };
+  }
+  return { id: `${Date.now()}`, start, end };
+};
 
 const formatTime = (millis: number) => {
   const totalSeconds = Math.floor(millis / 1000);
@@ -31,23 +43,44 @@ export function VideoAnalysisPlayerScreen({ navigation, route }: Props) {
   const [speed, setSpeed] = useState(1.0);
   const [finished, setFinished] = useState(false);
   const [drawingEnabled, setDrawingEnabled] = useState(false);
-  const [strokes, setStrokes] = useState<Stroke[]>([]);
+  const [guideLines, setGuideLines] = useState<GuideLine[]>([]);
+  const [previewLine, setPreviewLine] = useState<GuideLine | null>(null);
   const [seekWidth, setSeekWidth] = useState(1);
   const videoUri = route.params.videoUri || DUMMY_VIDEO_URI;
+
+  const updatePreviewLine = (event: GestureResponderEvent) => {
+    const { locationX, locationY } = event.nativeEvent;
+    setPreviewLine((current) => {
+      if (!current) return null;
+      return snapLine(current.start, { x: locationX, y: locationY });
+    });
+  };
+
+  const finishGuideLine = (event?: GestureResponderEvent) => {
+    setPreviewLine((current) => {
+      if (!current) return null;
+      const completedLine = event ? snapLine(current.start, { x: event.nativeEvent.locationX, y: event.nativeEvent.locationY }) : current;
+      setGuideLines((lines) => [...lines, completedLine]);
+      return null;
+    });
+  };
+
+  const clearGuideLines = () => {
+    setGuideLines([]);
+    setPreviewLine(null);
+  };
 
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => drawingEnabled,
     onMoveShouldSetPanResponder: () => drawingEnabled,
-    onPanResponderGrant: (event) => {
+    onPanResponderGrant: (event: GestureResponderEvent) => {
       const { locationX, locationY } = event.nativeEvent;
-      setStrokes((current) => [...current, { id: `${Date.now()}`, points: [{ x: locationX, y: locationY }] }]);
+      const start = { x: locationX, y: locationY };
+      setPreviewLine({ id: `${Date.now()}`, start, end: start });
     },
-    onPanResponderMove: (event) => {
-      const { locationX, locationY } = event.nativeEvent;
-      setStrokes((current) => current.map((stroke, index) => (
-        index === current.length - 1 ? { ...stroke, points: [...stroke.points, { x: locationX, y: locationY }] } : stroke
-      )));
-    },
+    onPanResponderMove: updatePreviewLine,
+    onPanResponderRelease: finishGuideLine,
+    onPanResponderTerminate: finishGuideLine,
   });
 
   const togglePlay = async () => {
@@ -85,7 +118,7 @@ export function VideoAnalysisPlayerScreen({ navigation, route }: Props) {
       <View style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]}>
         <Pressable onPress={() => navigation.goBack()} style={styles.topButton}><Text style={styles.topButtonText}>‹ 戻る</Text></Pressable>
         <Pressable onPress={() => setDrawingEnabled((current) => !current)} style={[styles.topButton, drawingEnabled && styles.topButtonActive]}><Text style={[styles.topButtonText, drawingEnabled && styles.topButtonActiveText]}>描画{drawingEnabled ? 'ON' : 'OFF'}</Text></Pressable>
-        <Pressable onPress={() => setStrokes([])} style={styles.topButton}><Text style={styles.topButtonText}>クリア</Text></Pressable>
+        <Pressable onPress={clearGuideLines} style={styles.topButton}><Text style={styles.topButtonText}>クリア</Text></Pressable>
       </View>
 
       <View style={styles.videoWrap}>
@@ -112,7 +145,8 @@ export function VideoAnalysisPlayerScreen({ navigation, route }: Props) {
         />
         <View pointerEvents={drawingEnabled ? 'auto' : 'none'} style={StyleSheet.absoluteFill} {...panResponder.panHandlers}>
           <Svg height="100%" width="100%">
-            {strokes.map((stroke) => <Polyline key={stroke.id} points={stroke.points.map((point) => `${point.x},${point.y}`).join(' ')} fill="none" stroke={colors.pink} strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} />)}
+            {guideLines.map((line) => <Line key={line.id} x1={line.start.x} y1={line.start.y} x2={line.end.x} y2={line.end.y} stroke={colors.pink} strokeLinecap="round" strokeWidth={3} />)}
+            {previewLine ? <Line x1={previewLine.start.x} y1={previewLine.start.y} x2={previewLine.end.x} y2={previewLine.end.y} stroke={colors.pink} strokeLinecap="round" strokeOpacity={0.75} strokeWidth={3} /> : null}
           </Svg>
         </View>
       </View>
